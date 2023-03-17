@@ -1,5 +1,6 @@
 package com.infamous.combat_next;
 
+import com.infamous.combat_next.network.CNNetwork;
 import com.infamous.combat_next.util.CombatUtil;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.common.ForgeMod;
@@ -16,6 +17,7 @@ public class ModEventHandler {
     @SubscribeEvent
     static void onCommonSetup(FMLCommonSetupEvent event){
         event.enqueueWork(() -> {
+            CNNetwork.register();
             CombatUtil.registerTridentDispenseBehavior();
             CombatUtil.modifyStrengthEffect();
             CombatUtil.modifyItemMaxStackSizes();

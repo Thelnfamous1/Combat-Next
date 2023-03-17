@@ -14,11 +14,16 @@
     "MobEffectMixin",
     "MobMixin",
     "PlayerMixin",
+    "ProjectileUtilMixin",
     "SweepingEdgeEnchantmentMixin",
     "ThrownTridentAccessor",
     "ThrownTridentMixin"
   ],
   "client": [
+    "GameRendererMixin",
+    "ItemInHandRendererMixin",
+    "MinecraftMixin",
+    "MultiPlayerGameModeAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
