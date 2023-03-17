@@ -16,7 +16,7 @@ public abstract class ItemStackMixin {
 
     @Shadow public abstract boolean is(TagKey<Item> tagKey);
 
-    @Inject(method = "getUseDuration", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "getUseDuration", at = @At("HEAD"), cancellable = true)
     private void handleGetUseDuration(CallbackInfoReturnable<Integer> cir){
         if(this.is(CNTags.FAST_DRINKS)){
             cir.setReturnValue(CombatUtil.DRINK_USE_DURATION);

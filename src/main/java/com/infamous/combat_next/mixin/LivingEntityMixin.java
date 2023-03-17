@@ -1,5 +1,6 @@
 package com.infamous.combat_next.mixin;
 
+import com.infamous.combat_next.util.CombatExtensions;
 import com.infamous.combat_next.util.CombatUtil;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -8,11 +9,16 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin extends Entity {
+public abstract class LivingEntityMixin extends Entity implements CombatExtensions {
+    private DamageSource lastBlockedDamageSource;
+    private long lastBlockedDamageStamp;
 
     @Shadow public abstract void knockback(double p_147241_, double p_147242_, double p_147243_);
 
@@ -36,16 +42,30 @@ public abstract class LivingEntityMixin extends Entity {
         this.markHurt();
     }
 
-    @Redirect(method = "hurt", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;knockback(DDD)V"))
-    private void handleKnockbackWhenHurt(LivingEntity victim, double strength, double xRatio, double zRatio, DamageSource source){
-        // reduce knockback taken by 50% when blocking
-        victim.knockback(victim.isDamageSourceBlocked(source) ? strength * 0.5D : strength, xRatio, zRatio);
-    }
-
     @Inject(method = "blockedByShield", at = @At("RETURN"), cancellable = true)
     private void fixBlockedByShield(LivingEntity defender, CallbackInfo ci){
         ci.cancel();
         // Fix MC-147694 by switching attacker and defender
         this.knockback(0.5D, this.getX() - defender.getX(), this.getZ() - defender.getZ());
+    }
+
+    @ModifyConstant(method = "hurt", constant = @Constant(floatValue = 10.0F, ordinal = 0))
+    private float getTicksLeftBeforeDamageable(float constant){
+        return 0.0F;
+    }
+
+    @Override
+    public DamageSource getLastBlockedDamageSource() {
+        if (this.level.getGameTime() - this.lastBlockedDamageStamp > 40L) {
+            this.lastBlockedDamageSource = null;
+        }
+
+        return this.lastBlockedDamageSource;
+    }
+
+    @Override
+    public void setLastBlockedDamageSource(DamageSource source) {
+        this.lastBlockedDamageSource = source;
+        this.lastBlockedDamageStamp = this.level.getGameTime();
     }
 }

@@ -18,7 +18,7 @@ import java.util.UUID;
 
 public class WeaponRebalancing {
     private static final EnumMap<WeaponType, Map<Tier, Map<Attribute, AttributeModifier>>> TIERED_WEAPON_ATTRIBUTES = new EnumMap<>(WeaponType.class);
-    private static final UUID ITEM_ATTACK_RANGE_MODIFIER_UUID = UUID.fromString("26cb07a3-209d-4110-8e10-1010243614c8");
+    public static final UUID ITEM_ATTACK_RANGE_MODIFIER_UUID = UUID.fromString("26cb07a3-209d-4110-8e10-1010243614c8");
     private static final String ATTACK_DAMAGE_MODIFIER_NAME = new ResourceLocation(CombatNext.MODID, "weapon_attack_damage_modifier").toString();
     private static final AttributeModifier TRIDENT_ATTACK_DAMAGE_MODIFIER = new AttributeModifier(getAttackDamageUUID(), ATTACK_DAMAGE_MODIFIER_NAME, 6.0D, AttributeModifier.Operation.ADDITION);
     private static final String ATTACK_SPEED_MODIFIER_NAME = new ResourceLocation(CombatNext.MODID, "weapon_attack_speed_modifier").toString();
