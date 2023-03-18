@@ -1,5 +1,6 @@
 package com.infamous.combat_next.mixin;
 
+import com.infamous.combat_next.util.CombatUtil;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.ItemStack;
@@ -25,6 +26,6 @@ public abstract class SweepingEdgeEnchantmentMixin extends Enchantment {
 
     @Inject(method = "getSweepingDamageRatio", at = @At("RETURN"), cancellable = true)
     private static void handleGetSweepingDamageRatio(int level, CallbackInfoReturnable<Float> cir){
-        cir.setReturnValue(cir.getReturnValue() * 0.5F);
+        cir.setReturnValue(cir.getReturnValue() * CombatUtil.SWEEPING_DAMAGE_SCALE);
     }
 }

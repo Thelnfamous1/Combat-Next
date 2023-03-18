@@ -4,7 +4,6 @@ import com.infamous.combat_next.util.CombatUtil;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.ThrownTrident;
 import net.minecraft.world.item.ItemStack;
@@ -15,7 +14,7 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 @Mixin(ThrownTrident.class)
 public abstract class ThrownTridentMixin extends AbstractArrow {
@@ -29,6 +28,8 @@ public abstract class ThrownTridentMixin extends AbstractArrow {
     @Shadow public int clientSideReturnTridentTickCount;
 
     @Shadow @Final private static EntityDataAccessor<Byte> ID_LOYALTY;
+
+    @Shadow private ItemStack tridentItem;
 
     @Override
     public void outOfWorld() {
@@ -64,8 +65,8 @@ public abstract class ThrownTridentMixin extends AbstractArrow {
         }
     }
 
-    @Redirect(method = "onHitEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/enchantment/EnchantmentHelper;getDamageBonus(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/MobType;)F"))
-    private float getDamageBonus(ItemStack stack, MobType mobType, EntityHitResult hitResult){
-        return CombatUtil.getDamageBonusRedirect(stack, hitResult.getEntity());
+    @ModifyVariable(method = "onHitEntity", at = @At(value = "STORE", ordinal = 1), ordinal = 0)
+    private float modifyEnchantmentDamage(float original, EntityHitResult entityHitResult){
+        return CombatUtil.recalculateEnchantmentDamage(this.tridentItem, original, entityHitResult.getEntity());
     }
 }

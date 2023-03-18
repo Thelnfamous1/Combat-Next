@@ -1,16 +1,14 @@
 package com.infamous.combat_next.mixin;
 
 import com.infamous.combat_next.util.CombatUtil;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.ToolAction;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -39,14 +37,20 @@ public abstract class PlayerMixin extends LivingEntity{
         return damage + 1; // impossible to achieve, so guaranteed to fail
     }
 
-    @Redirect(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;canPerformAction(Lnet/minecraftforge/common/ToolAction;)Z", remap = false))
-    private boolean canSweep(ItemStack instance, ToolAction toolAction){
-        return instance.getEnchantmentLevel(Enchantments.SWEEPING_EDGE) > 0;
+    @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 1), ordinal = 3)
+    private boolean canSweep(boolean original){
+        return this.getItemInHand(InteractionHand.MAIN_HAND).getEnchantmentLevel(Enchantments.SWEEPING_EDGE) > 0;
     }
 
-    @Redirect(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/enchantment/EnchantmentHelper;getDamageBonus(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/MobType;)F"))
-    private float getDamageBonus(ItemStack stack, MobType p_44835_, Entity target){
-        return CombatUtil.getDamageBonusRedirect(stack, target);
+    @SuppressWarnings("InvalidInjectorMethodSignature")
+    @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 0), ordinal = 1)
+    private float modifyEnchantmentDamage1(float original, Entity target){
+        return CombatUtil.recalculateEnchantmentDamage(this.getMainHandItem(), original, target);
+    }
+
+    @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 1), ordinal = 1)
+    private float modifyEnchantmentDamage2(float original, Entity target){
+        return CombatUtil.recalculateEnchantmentDamage(this.getMainHandItem(), original, target);
     }
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;resetAttackStrengthTicker()V"))
@@ -55,7 +59,7 @@ public abstract class PlayerMixin extends LivingEntity{
     }
 
     @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 2), ordinal = 1)
-    private float storeEnchantmentDamage(float original){
+    private float scaleAndStoreEnchantmentDamage(float original){
         float enchantmentDamage = CombatUtil.scaleEnchantmentDamage(this, original);
         this.currentEnchantmentDamage = enchantmentDamage;
         return enchantmentDamage;

@@ -32,7 +32,6 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.entity.projectile.ThrownTrident;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
@@ -40,12 +39,9 @@ import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.common.ForgeMod;
-import org.apache.commons.lang3.mutable.MutableFloat;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 public class CombatUtil {
@@ -74,6 +70,7 @@ public class CombatUtil {
     public static final float SUPERCHARGED_MAX_ATTACK_STRENGTH = 2.0F;
     private static final String BONUS_REACH_MODIFIER_NAME = new ResourceLocation(CombatNext.MODID, "bonus_reach").toString();
     private static final double BONUS_REACH = 1.0D;
+    public static final float SWEEPING_DAMAGE_SCALE = 0.5F;
 
     public static void registerTridentDispenseBehavior(){
         DispenserBlock.registerBehavior(Items.TRIDENT, new AbstractProjectileDispenseBehavior() {
@@ -108,35 +105,19 @@ public class CombatUtil {
         return source.getDirectEntity() instanceof LivingEntity || (source.isProjectile() && source.getEntity() instanceof LivingEntity);
     }
 
-    public static float getDamageBonusRedirect(ItemStack stack, Entity target) {
-        if (target instanceof LivingEntity victim) {
-            return getDamageBonus(stack, victim);
-        } else{
-            return EnchantmentHelper.getDamageBonus(stack, MobType.UNDEFINED);
+    public static float recalculateEnchantmentDamage(ItemStack stack, float amount, Entity target){
+        int impalingLevel = stack.getEnchantmentLevel(Enchantments.IMPALING);
+        if(impalingLevel > 0){
+            if(target instanceof LivingEntity victim){
+                float originalBonus = Enchantments.IMPALING.getDamageBonus(impalingLevel, victim.getMobType(), stack);
+                amount -= originalBonus;
+            }
+            amount += getImpalingDamageBonus(impalingLevel, target);
         }
+        return amount;
     }
 
-    public static float getDamageBonus(ItemStack stack, LivingEntity target) {
-        MutableFloat mutablefloat = new MutableFloat();
-        runIterationOnItem((enchantment, level) -> {
-            if(enchantment == Enchantments.IMPALING){
-                mutablefloat.add(getImpalingDamageBonus(level, target));
-            } else{
-                mutablefloat.add(enchantment.getDamageBonus(level, target.getMobType(), stack));
-            }
-        }, stack);
-        return mutablefloat.floatValue();
-    }
-
-    private static void runIterationOnItem(BiConsumer<Enchantment, Integer> enchantmentVisitor, ItemStack stack) {
-        if (!stack.isEmpty()) {
-            // forge: redirect enchantment logic to allow non-NBT enchants
-            for (Map.Entry<Enchantment, Integer> entry : stack.getAllEnchantments().entrySet()) {
-                enchantmentVisitor.accept(entry.getKey(), entry.getValue());
-            }
-        }
-    }
-    public static float getImpalingDamageBonus(int level, LivingEntity target){
+    public static float getImpalingDamageBonus(int level, Entity target){
         return target.isInWaterOrRain() ? (float)level * 2.5F : 0.0F;
     }
 
@@ -217,8 +198,7 @@ public class CombatUtil {
         return player.getAttackStrengthScale(partialTick) < 1.0F;
     }
 
-    public static AABB getAttackableBoundingBox(Entity instance) {
-        AABB boundingBox = instance.getBoundingBox();
+    public static AABB adjustBBForRayTrace(AABB boundingBox) {
         if(boundingBox.getSize() < MIN_HITBOX_SIZE_FOR_ATTACK){
             double xAdjust = adjustSize(boundingBox.getXsize());
             double yAdjust = adjustSize(boundingBox.getYsize());
@@ -288,12 +268,10 @@ public class CombatUtil {
             if(bonusReachModifier != null){
                 if(!add) {
                     entityReachInstance.removeModifier(BONUS_REACH_MODIFIER_UUID);
-                    CombatNext.LOGGER.info("Removed bonus reach from {}", player);
                 }
             } else if(add){
                 entityReachInstance.addTransientModifier(
                         new AttributeModifier(BONUS_REACH_MODIFIER_UUID, BONUS_REACH_MODIFIER_NAME, BONUS_REACH, AttributeModifier.Operation.ADDITION));
-                CombatNext.LOGGER.info("Added bonus reach to {}", player);
             }
         }
     }
