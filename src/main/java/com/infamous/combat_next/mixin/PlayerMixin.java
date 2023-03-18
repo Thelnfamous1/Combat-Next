@@ -11,12 +11,18 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.ToolAction;
+import net.minecraftforge.event.entity.player.CriticalHitEvent;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Player.class)
 public abstract class PlayerMixin extends LivingEntity{
+
+    private float currentEnchantmentDamage;
+    @Nullable
+    private CriticalHitEvent criticalHitEvent;
 
     protected PlayerMixin(EntityType<? extends LivingEntity> p_20966_, Level p_20967_) {
         super(p_20966_, p_20967_);
@@ -46,5 +52,26 @@ public abstract class PlayerMixin extends LivingEntity{
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;resetAttackStrengthTicker()V"))
     private void dontResetTickerIfWeaponSwapped(Player instance){
 
+    }
+
+    @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 2), ordinal = 1)
+    private float storeEnchantmentDamage(float original){
+        float enchantmentDamage = CombatUtil.scaleEnchantmentDamage(this, original);
+        this.currentEnchantmentDamage = enchantmentDamage;
+        return enchantmentDamage;
+    }
+
+    @ModifyVariable(method = "attack", at = @At(value = "STORE"), ordinal = 0)
+    private CriticalHitEvent storeCriticalHitEvent(CriticalHitEvent original){
+        this.criticalHitEvent = original;
+        return original;
+    }
+
+    @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 3), ordinal = 0)
+    private float addCritEnchantmentDamage(float original){
+        if(this.criticalHitEvent != null){
+            original += ((this.criticalHitEvent.getDamageModifier() - 1.0F) * this.currentEnchantmentDamage);
+        }
+        return original;
     }
 }

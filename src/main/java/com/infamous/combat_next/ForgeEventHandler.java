@@ -16,13 +16,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.Iterator;
@@ -68,7 +71,7 @@ public class ForgeEventHandler {
 
             if(stack.is(Items.SHIELD)){
                 if(!source.isProjectile() && (!source.isExplosion() || source.getEntity() == user)){
-                    event.setBlockedDamage(Math.min(5.0F, amount));
+                    event.setBlockedDamage(Math.min(CombatUtil.MAX_SHIELD_BLOCKED_DAMAGE, amount));
                 }
             }
         }
@@ -83,7 +86,7 @@ public class ForgeEventHandler {
         if(itemStack.is(Items.EGG) || itemStack.is(Items.SNOWBALL)){
             ItemCooldowns cooldowns = event.getEntity().getCooldowns();
             if(!cooldowns.isOnCooldown(itemStack.getItem())){
-                cooldowns.addCooldown(itemStack.getItem(), 4);
+                cooldowns.addCooldown(itemStack.getItem(), CombatUtil.THROWABLE_ITEM_COOLDOWN);
             }
         }
     }
@@ -169,7 +172,7 @@ public class ForgeEventHandler {
             LivingEntity victim = event.getEntity();
             DamageSource lastBlockedDamageSource = CombatExtensions.cast(victim).getLastBlockedDamageSource();
             if(lastBlockedDamageSource != null && victim.isDamageSourceBlocked(lastBlockedDamageSource)){
-                event.setStrength(event.getStrength() * 0.5F);
+                event.setStrength(event.getStrength() * CombatUtil.SHIELD_KNOCKBACK_SCALE);
             }
         }
     }
@@ -197,6 +200,25 @@ public class ForgeEventHandler {
                     player.isLocalPlayer() ? ClientCombatUtil::hitEntity : CombatUtil::hitEntity);
             event.setCanceled(hitThroughBlock);
             if(hitThroughBlock) event.setUseBlock(Event.Result.DENY);
+        }
+    }
+
+    @SubscribeEvent
+    static void onCriticalHit(CriticalHitEvent event){
+        if(!event.isVanillaCritical()){
+            Player player = event.getEntity();
+            boolean sprintCritical = CombatUtil.isSprintCritical(player, event.getTarget());
+            if(sprintCritical){
+                event.setResult(Event.Result.ALLOW);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    static void onPlayerTick(TickEvent.PlayerTickEvent event){
+        if(event.phase == TickEvent.Phase.END && event.side == LogicalSide.SERVER){
+            boolean supercharged = CombatUtil.isSupercharged(event.player, 0.0F);
+            CombatUtil.handleBonusReach(event.player, supercharged && !event.player.isCrouching());
         }
     }
 

@@ -3,6 +3,7 @@ package com.infamous.combat_next.util;
 import com.infamous.combat_next.CombatNext;
 import com.infamous.combat_next.client.ClientCombatUtil;
 import com.infamous.combat_next.mixin.ItemAccessor;
+import com.infamous.combat_next.mixin.LivingEntityAccessor;
 import com.infamous.combat_next.mixin.ThrownTridentAccessor;
 import com.infamous.combat_next.network.CNNetwork;
 import com.infamous.combat_next.network.ServerboundMissPacket;
@@ -10,6 +11,7 @@ import com.infamous.combat_next.registry.EnchantmentRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
 import net.minecraft.core.dispenser.AbstractProjectileDispenseBehavior;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -19,6 +21,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobType;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.decoration.ArmorStand;
@@ -36,14 +39,17 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
+import net.minecraftforge.common.ForgeMod;
 import org.apache.commons.lang3.mutable.MutableFloat;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 public class CombatUtil {
+    private static final UUID BONUS_REACH_MODIFIER_UUID = UUID.fromString("30a9271c-d6b2-4651-b088-800acc43f282");
 
     private static final String DAMAGE_BOOST_MODIFIER_UUID = "648D7064-6A60-4F59-8ABE-C2C23A6DD7A9";
     private static final double DAMAGE_BOOST_MODIFIER_VALUE = 0.2D;
@@ -58,6 +64,16 @@ public class CombatUtil {
     public static final int TICKS_BEFORE_FOOD_HEALING = 40;
     public static final int HEALING_FOOD_LEVEL_DECREASE_TIME = 2;
     private static final double MIN_HITBOX_SIZE_FOR_ATTACK = 0.9D;
+    public static final int OPTIMAL_CHARGE_TIME = 60;
+    public static final float NEW_ARROW_INACCURACY = 0.25F;
+    private static final int MISSED_ATTACK_COOLDOWN = 4;
+    public static final double INSTANT_ARROW_EFFECT_MULTIPLIER = 0.375D;
+    public static final float MAX_SHIELD_BLOCKED_DAMAGE = 5.0F;
+    public static final int THROWABLE_ITEM_COOLDOWN = 4;
+    public static final float SHIELD_KNOCKBACK_SCALE = 0.5F;
+    public static final float SUPERCHARGED_MAX_ATTACK_STRENGTH = 2.0F;
+    private static final String BONUS_REACH_MODIFIER_NAME = new ResourceLocation(CombatNext.MODID, "bonus_reach").toString();
+    private static final double BONUS_REACH = 1.0D;
 
     public static void registerTridentDispenseBehavior(){
         DispenserBlock.registerBehavior(Items.TRIDENT, new AbstractProjectileDispenseBehavior() {
@@ -139,6 +155,15 @@ public class CombatUtil {
         }
         if (!player.isSpectator()) {
             sweepAttack(player);
+            resetAttackStrengthTicker(player, true);
+        }
+    }
+    
+    public static void resetAttackStrengthTicker(Player player, boolean miss){
+        if(miss){
+            LivingEntityAccessor accessor = (LivingEntityAccessor) player;
+            accessor.setAttackStrengthTicker((int) (player.getCurrentItemAttackStrengthDelay() - MISSED_ATTACK_COOLDOWN));
+        } else{
             player.resetAttackStrengthTicker();
         }
     }
@@ -192,7 +217,6 @@ public class CombatUtil {
         return player.getAttackStrengthScale(partialTick) < 1.0F;
     }
 
-    @NotNull
     public static AABB getAttackableBoundingBox(Entity instance) {
         AABB boundingBox = instance.getBoundingBox();
         if(boundingBox.getSize() < MIN_HITBOX_SIZE_FOR_ATTACK){
@@ -216,33 +240,85 @@ public class CombatUtil {
         return hitEntity.test(player);
     }
 
-    public static boolean hitEntity(Player player) {
+    public static boolean hitEntity(Player player){
+        return getEntityHit(player).isPresent();
+    }
+
+    public static Optional<EntityHitResult> getEntityHit(Player player) {
         double blockReach = player.getReachDistance();
-        Vec3 eyePosition = player.getEyePosition(1.0F);
+        Vec3 from = player.getEyePosition(1.0F);
         double reach;
         double entityReach = player.getAttackRange();
-        if (player.isCreative()) {
-            reach = Math.max(blockReach, entityReach);
-            blockReach = reach;
-        } else {
-            blockReach = reach = Math.max(blockReach, entityReach); // Pick entities with the max of the reach distance and attack range.
-        }
+        blockReach = reach = Math.max(blockReach, entityReach); // Pick entities with the max of the reach distance and attack range.
 
         double reachSqr = Mth.square(reach);
 
-        Vec3 from = player.getViewVector(1.0F);
-        Vec3 to = eyePosition.add(from.x * blockReach, from.y * blockReach, from.z * blockReach);
-        AABB aabb = player.getBoundingBox().expandTowards(from.scale(blockReach)).inflate(1.0D, 1.0D, 1.0D);
-        EntityHitResult entityHitResult = ProjectileUtil.getEntityHitResult(player, eyePosition, to, aabb, (e) -> !e.isSpectator() && e.isPickable(), reachSqr);
+        Vec3 viewVector = player.getViewVector(1.0F);
+        Vec3 to = from.add(viewVector.x * blockReach, viewVector.y * blockReach, viewVector.z * blockReach);
+        AABB searchBox = player.getBoundingBox().expandTowards(viewVector.scale(blockReach)).inflate(1.0D, 1.0D, 1.0D);
+        EntityHitResult entityHitResult = ProjectileUtil.getEntityHitResult(player, from, to, searchBox, (e) -> !e.isSpectator() && e.isPickable(), reachSqr);
         if (entityHitResult != null) {
-            return isValidHit(entityHitResult, eyePosition, reachSqr, Mth.square(entityReach));
+            return Optional.of(entityHitResult).filter(ehr -> {
+                Vec3 hitLocation = ehr.getLocation();
+                double distanceToSqr = from.distanceToSqr(hitLocation);
+                return distanceToSqr <= Mth.square(entityReach) && distanceToSqr <= reachSqr;
+            });
         }
-        return false;
+        return Optional.empty();
     }
 
-    public static boolean isValidHit(EntityHitResult entityHitResult, Vec3 eyePosition, double reachSqr, double entityReachSqr) {
-        Vec3 hitLocation = entityHitResult.getLocation();
-        double distanceToSqr = eyePosition.distanceToSqr(hitLocation);
-        return distanceToSqr <= entityReachSqr && distanceToSqr <= reachSqr;
+    public static boolean isSprintCritical(Player player, Entity target) {
+        boolean fullStrength = player.getAttackStrengthScale(0.5F) > 0.9F;
+        boolean canSprintCrit = fullStrength
+                && player.fallDistance <= 0.0F // can't sprint and fall
+                && player.isOnGround() // can only sprint on ground
+                && !player.onClimbable()
+                && !player.isInWater()
+                && !player.hasEffect(MobEffects.BLINDNESS)
+                && !player.isPassenger()
+                && target instanceof LivingEntity;
+        canSprintCrit = canSprintCrit && player.isSprinting();
+        return canSprintCrit;
+    }
+
+    public static void handleBonusReach(Player player, boolean add) {
+        AttributeInstance entityReachInstance = player.getAttribute(ForgeMod.ATTACK_RANGE.get());
+        if (entityReachInstance != null) {
+            AttributeModifier bonusReachModifier = entityReachInstance.getModifier(BONUS_REACH_MODIFIER_UUID);
+            if(bonusReachModifier != null){
+                if(!add) {
+                    entityReachInstance.removeModifier(BONUS_REACH_MODIFIER_UUID);
+                    CombatNext.LOGGER.info("Removed bonus reach from {}", player);
+                }
+            } else if(add){
+                entityReachInstance.addTransientModifier(
+                        new AttributeModifier(BONUS_REACH_MODIFIER_UUID, BONUS_REACH_MODIFIER_NAME, BONUS_REACH, AttributeModifier.Operation.ADDITION));
+                CombatNext.LOGGER.info("Added bonus reach to {}", player);
+            }
+        }
+    }
+
+    public static boolean isSupercharged(Player player, float partialTick) {
+        return getSuperchargedAttackStrengthScale(player, partialTick) >= SUPERCHARGED_MAX_ATTACK_STRENGTH;
+    }
+
+    private static float getSuperchargedAttackStrengthScale(Player player, float partialTick) {
+        return Mth.clamp(((float) ((LivingEntityAccessor) player).getAttackStrengthTicker() + partialTick) / player.getCurrentItemAttackStrengthDelay(), 0.0F, SUPERCHARGED_MAX_ATTACK_STRENGTH);
+    }
+
+    public static float scaleEnchantmentDamage(LivingEntity player, float base) {
+        AttributeInstance attributeInstance = player.getAttribute(Attributes.ATTACK_DAMAGE);
+        float result = base;
+
+        if(attributeInstance != null){
+            for(AttributeModifier mod : attributeInstance.getModifiers(AttributeModifier.Operation.MULTIPLY_BASE)) {
+                result += base * mod.getAmount();
+            }
+
+            for(AttributeModifier mod : attributeInstance.getModifiers(AttributeModifier.Operation.MULTIPLY_TOTAL)) {
+                result *= 1.0D + mod.getAmount();
+            }
+        }
+        return result;
     }
 }

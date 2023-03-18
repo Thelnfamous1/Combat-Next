@@ -13,7 +13,7 @@ public class ProjectileUtilMixin {
 
     @Redirect(method = "getEntityHitResult(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;D)Lnet/minecraft/world/phys/EntityHitResult;",
     at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getBoundingBox()Lnet/minecraft/world/phys/AABB;"))
-    private static AABB getEntityBoundingBoxForHitResult(Entity instance){
+    private static AABB getEntityBoundingBoxForRenderer(Entity instance){
         return CombatUtil.getAttackableBoundingBox(instance);
     }
 
