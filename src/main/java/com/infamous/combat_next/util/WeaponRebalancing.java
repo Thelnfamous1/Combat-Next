@@ -84,7 +84,7 @@ public class WeaponRebalancing {
             event.removeAttribute(Attributes.ATTACK_SPEED);
             event.addModifier(Attributes.ATTACK_DAMAGE, getAttackDamage(WeaponType.TRIDENT, TRIDENT_DUMMY_TIER, TRIDENT_ATTACK_DAMAGE - ConfigUtil.getBaseAttackDamage()));
             event.addModifier(Attributes.ATTACK_SPEED, getAttackSpeed(WeaponType.TRIDENT, TRIDENT_DUMMY_TIER, TRIDENT_ATTACK_SPEED - ConfigUtil.getBaseAttackSpeed()));
-            event.addModifier(ForgeMod.ATTACK_RANGE.get(), getAttackSpeed(WeaponType.TRIDENT, TRIDENT_DUMMY_TIER, TRIDENT_ATTACK_RANGE - ConfigUtil.getBaseAttackRange()));
+            event.addModifier(ForgeMod.ATTACK_RANGE.get(), getAttackRange(WeaponType.TRIDENT, TRIDENT_DUMMY_TIER, TRIDENT_ATTACK_RANGE - ConfigUtil.getBaseAttackRange()));
         }
     }
 
