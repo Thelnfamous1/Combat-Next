@@ -8,15 +8,11 @@ import com.infamous.combat_next.network.ClientboundConfigSyncPacket;
 import com.infamous.combat_next.util.CombatExtensions;
 import com.infamous.combat_next.util.CombatUtil;
 import com.infamous.combat_next.util.WeaponRebalancing;
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentContents;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
@@ -31,7 +27,6 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import java.util.Iterator;
 import java.util.List;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = CombatNext.MODID)
@@ -123,50 +118,8 @@ public class ForgeEventHandler {
         Player player = event.getEntity();
         if(player == null) return;
         ItemStack stack = event.getItemStack();
-
         List<Component> toolTips = event.getToolTip();
-        int modifierToolTipIndex = -1;
-        Iterator<AttributeModifier> modifierIterator = null;
-        for(int i = 0; i < toolTips.size(); i++){
-            Component toolTip = toolTips.get(i);
-            ComponentContents contents = toolTip.getContents();
-            String toolTipString = contents.toString();
-
-            if(i == modifierToolTipIndex){
-                if(toolTipString.contains(ForgeMod.ATTACK_RANGE.get().getDescriptionId())){
-                    if(modifierIterator.hasNext()){
-                        AttributeModifier modifier = modifierIterator.next();
-                        if(modifier.getId() == WeaponRebalancing.ITEM_ATTACK_RANGE_MODIFIER_UUID){
-                            Component replacement = createEqualRangeModifier(player, modifier);
-                            toolTips.set(i, replacement);
-                        }
-                    }
-                }
-                modifierToolTipIndex++;
-            }
-            if(toolTipString.contains("item.modifiers.")){
-                for(EquipmentSlot slot : EquipmentSlot.values()){
-                    if(!toolTipString.contains(slot.getName())) continue;
-
-                    modifierToolTipIndex = i + 1;
-                    modifierIterator = stack.getAttributeModifiers(slot).get(ForgeMod.ATTACK_RANGE.get()).iterator();
-                    break;
-                }
-            }
-        }
-    }
-
-    private static MutableComponent createEqualRangeModifier(Player player, AttributeModifier modifier) {
-        return Component.literal(" ")
-                .append(Component.translatable("attribute.modifier.equals." + modifier.getOperation().toValue(),
-                        ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(getRangeModifierValue(modifier, player)),
-                        Component.translatable(ForgeMod.ATTACK_RANGE.get().getDescriptionId())).withStyle(ChatFormatting.DARK_GREEN));
-    }
-
-    private static double getRangeModifierValue(AttributeModifier modifier, Player player){
-        double amount = modifier.getAmount();
-        amount += player.getAttributeBaseValue(ForgeMod.ATTACK_RANGE.get());
-        return amount;
+        WeaponRebalancing.adjustItemTooltip(player, stack, toolTips);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

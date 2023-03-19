@@ -3,26 +3,28 @@ package com.infamous.combat_next.util;
 import com.infamous.combat_next.CombatNext;
 import com.infamous.combat_next.config.ConfigUtil;
 import com.infamous.combat_next.mixin.ItemAccessor;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentContents;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.ForgeTier;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class WeaponRebalancing {
     private static final EnumMap<WeaponType, Map<Tier, Map<Attribute, AttributeModifier>>> TIERED_WEAPON_ATTRIBUTES = new EnumMap<>(WeaponType.class);
     @SuppressWarnings("ConstantConditions")
     private static final ForgeTier TRIDENT_DUMMY_TIER = new ForgeTier(0, 0, 0, 0, 0, null, null);
-    public static final UUID ITEM_ATTACK_RANGE_MODIFIER_UUID = UUID.fromString("26cb07a3-209d-4110-8e10-1010243614c8");
+    private static final UUID ITEM_ATTACK_RANGE_MODIFIER_UUID = UUID.fromString("26cb07a3-209d-4110-8e10-1010243614c8");
     private static final String ATTACK_DAMAGE_MODIFIER_NAME = new ResourceLocation(CombatNext.MODID, "weapon_attack_damage_modifier").toString();
     private static final String ATTACK_SPEED_MODIFIER_NAME = new ResourceLocation(CombatNext.MODID, "weapon_attack_speed_modifier").toString();
     private static final String ATTACK_RANGE_MODIFIER_NAME = new ResourceLocation(CombatNext.MODID, "weapon_attack_range_modifier").toString();
@@ -86,17 +88,14 @@ public class WeaponRebalancing {
         }
     }
 
-    @NotNull
     private static AttributeModifier getAttackDamage(WeaponType weaponType, Tier tier, double defaultValue) {
         return getModifier(weaponType, tier, Attributes.ATTACK_DAMAGE, getAttackDamageUUID(), ATTACK_DAMAGE_MODIFIER_NAME, defaultValue, AttributeModifier.Operation.ADDITION);
     }
 
-    @NotNull
     private static AttributeModifier getAttackRange(WeaponType weaponType, Tier tier, double defaultValue) {
         return getModifier(weaponType, tier, ForgeMod.ATTACK_RANGE.get(), ITEM_ATTACK_RANGE_MODIFIER_UUID, ATTACK_RANGE_MODIFIER_NAME, defaultValue, AttributeModifier.Operation.ADDITION);
     }
 
-    @NotNull
     private static AttributeModifier getAttackSpeed(WeaponType weaponType, Tier tier, double defaultValue) {
         return getModifier(weaponType, tier, Attributes.ATTACK_SPEED, getAttackSpeedUUID(), ATTACK_SPEED_MODIFIER_NAME, defaultValue, AttributeModifier.Operation.ADDITION);
     }
@@ -162,6 +161,53 @@ public class WeaponRebalancing {
                 .computeIfAbsent(attribute, k ->
                         new AttributeModifier(uuid, modifierName, defaultValue, operation)
                 );
+    }
+
+    public static void adjustItemTooltip(Player player, ItemStack stack, List<Component> toolTips) {
+        if(stack.getItem() instanceof TieredItem || stack.is(Items.TRIDENT)){
+            int modifierToolTipIndex = -1;
+            Iterator<AttributeModifier> modifierIterator = null;
+            for(int i = 0; i < toolTips.size(); i++){
+                Component toolTip = toolTips.get(i);
+                ComponentContents contents = toolTip.getContents();
+                String toolTipString = contents.toString();
+
+                if(i == modifierToolTipIndex){
+                    if(toolTipString.contains(ForgeMod.ATTACK_RANGE.get().getDescriptionId())){
+                        if(modifierIterator.hasNext()){
+                            AttributeModifier modifier = modifierIterator.next();
+                            if(modifier.getId() == ITEM_ATTACK_RANGE_MODIFIER_UUID){
+                                Component replacement = createEqualAttackRangeModifier(player, modifier);
+                                toolTips.set(i, replacement);
+                            }
+                        }
+                    }
+                    modifierToolTipIndex++;
+                }
+                if(toolTipString.contains("item.modifiers.")){
+                    for(EquipmentSlot slot : EquipmentSlot.values()){
+                        if(!toolTipString.contains(slot.getName())) continue;
+
+                        modifierToolTipIndex = i + 1;
+                        modifierIterator = stack.getAttributeModifiers(slot).get(ForgeMod.ATTACK_RANGE.get()).iterator();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private static MutableComponent createEqualAttackRangeModifier(Player player, AttributeModifier attackRangeModifier) {
+        return Component.literal(" ")
+                .append(Component.translatable("attribute.modifier.equals." + attackRangeModifier.getOperation().toValue(),
+                        ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(getTotalAttackRange(attackRangeModifier, player)),
+                        Component.translatable(ForgeMod.ATTACK_RANGE.get().getDescriptionId())).withStyle(ChatFormatting.DARK_GREEN));
+    }
+
+    private static double getTotalAttackRange(AttributeModifier modifier, Player player){
+        double amount = modifier.getAmount();
+        amount += player.getAttributeBaseValue(ForgeMod.ATTACK_RANGE.get());
+        return amount;
     }
 
     private enum WeaponType {
