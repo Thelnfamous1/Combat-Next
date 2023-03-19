@@ -12,6 +12,7 @@ import com.infamous.combat_next.registry.EnchantmentRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
 import net.minecraft.core.dispenser.AbstractProjectileDispenseBehavior;
+import net.minecraft.locale.Language;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -22,6 +23,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobType;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -33,6 +35,7 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.entity.projectile.ThrownTrident;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
@@ -70,8 +73,12 @@ public class CombatUtil {
     private static void modifyStrengthEffect(){
         MobEffects.DAMAGE_BOOST.addAttributeModifier(Attributes.ATTACK_DAMAGE, DAMAGE_BOOST_MODIFIER_UUID, ConfigUtil.getStrengthEffectModifierValue(), AttributeModifier.Operation.MULTIPLY_TOTAL);
         CombatNext.LOGGER.info("Modified MobEffect {} to have an AttributeModifier for Attribute {} with UUID {}, value of {}, and Operation of {}",
-                "minecraft:strength", Attributes.ATTACK_DAMAGE, DAMAGE_BOOST_MODIFIER_UUID, ConfigUtil.getStrengthEffectModifierValue(),
+                "minecraft:strength", getTranslation(Attributes.ATTACK_KNOCKBACK.getDescriptionId()), DAMAGE_BOOST_MODIFIER_UUID, ConfigUtil.getStrengthEffectModifierValue(),
                 AttributeModifier.Operation.MULTIPLY_TOTAL);
+    }
+
+    private static String getTranslation(String descriptionId) {
+        return Language.getInstance().getOrDefault(descriptionId);
     }
 
     private static void modifyItemMaxStackSizes(){
@@ -79,6 +86,10 @@ public class CombatUtil {
         CombatNext.LOGGER.info("Changed max stack size of {} to {}", "minecraft:snowball", ConfigUtil.getSnowballMaxStackSize());
         ((ItemAccessor)Items.POTION).setMaxStackSize(ConfigUtil.getPotionMaxStackSize());
         CombatNext.LOGGER.info("Changed max stack size of {} to {}", "minecraft:potion", ConfigUtil.getPotionMaxStackSize());
+    }
+
+    public static boolean isEatOrDrink(UseAnim anim){
+        return anim == UseAnim.EAT || anim == UseAnim.DRINK;
     }
 
     public static boolean canInterruptConsumption(DamageSource source){
@@ -288,5 +299,21 @@ public class CombatUtil {
     public static void applySyncedConfigs() {
         modifyStrengthEffect();
         modifyItemMaxStackSizes();
+    }
+
+    public static void adjustAttributeBaseValue(Player player, Attribute attribute, double newBaseValue) {
+        AttributeInstance attributeInstance = player.getAttribute(attribute);
+        if(attributeInstance != null) {
+            double oldBaseValue = attributeInstance.getBaseValue();
+            if (oldBaseValue != newBaseValue) {
+                attributeInstance.setBaseValue(newBaseValue);
+            }
+            CombatNext.LOGGER.info("Set base value for Attribute {} for Player {} to {}, was {}", getTranslation(attribute.getDescriptionId()), player.getName().getString(), newBaseValue, oldBaseValue);
+        }
+    }
+
+    public static void setAttributeSyncable(Attribute attribute) {
+        attribute.setSyncable(true);
+        CombatNext.LOGGER.info("Set Attribute {} to client syncable", getTranslation(attribute.getDescriptionId()));
     }
 }

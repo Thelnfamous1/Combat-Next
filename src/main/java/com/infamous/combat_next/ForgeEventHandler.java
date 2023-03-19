@@ -17,6 +17,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraftforge.common.ForgeMod;
@@ -110,7 +111,7 @@ public class ForgeEventHandler {
                 LivingEntity victim = event.getEntity();
                 ItemStack useItem = victim.getUseItem();
                 UseAnim useAnimation = useItem.getUseAnimation();
-                if(victim.isUsingItem() && useAnimation == UseAnim.EAT || useAnimation == UseAnim.DRINK){
+                if(victim.isUsingItem() && CombatUtil.isEatOrDrink(useAnimation)){
                     victim.stopUsingItem();
                 }
             }
@@ -231,7 +232,12 @@ public class ForgeEventHandler {
 
     @SubscribeEvent
     static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event){
-        CNNetwork.syncToPlayer((ServerPlayer) event.getEntity(), ClientboundConfigSyncPacket.createConfigSyncPacket());
+        Player player = event.getEntity();
+        CNNetwork.syncToPlayer((ServerPlayer) player, ClientboundConfigSyncPacket.createConfigSyncPacket());
+        CombatUtil.adjustAttributeBaseValue(player, Attributes.ATTACK_DAMAGE, ConfigUtil.getBaseAttackDamage());
+        CombatUtil.adjustAttributeBaseValue(player, Attributes.ATTACK_KNOCKBACK, ConfigUtil.getBaseAttackKnockback());
+        CombatUtil.adjustAttributeBaseValue(player, ForgeMod.ATTACK_RANGE.get(), ConfigUtil.getBaseAttackRange());
+        CombatUtil.adjustAttributeBaseValue(player, Attributes.ATTACK_SPEED, ConfigUtil.getBaseAttackSpeed());
     }
 
 }

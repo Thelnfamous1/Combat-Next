@@ -5,6 +5,10 @@ public class ConfigUtil {
     static final double ATTACK_BONUS_REACH_WHEN_SUPERCHARGED = 1.0D;
     static final int ATTACK_MISS_COOLDOWN_TICKS = 4;
     static final float ATTACK_STRENGTH_SCALE_SUPERCHARGE_THRESHOLD = 2.0F;
+    public static final double BASE_ATTACK_DAMAGE = 2.0D;
+    public static final double BASE_ATTACK_KNOCKBACK = 0.0D;
+    static final double BASE_ATTACK_RANGE = 2.5D;
+    static final double BASE_ATTACK_SPEED = 4.0D;
     static final float BOW_ARROW_INACCURACY = 0.25F;
     static final int BOW_TICKS_BEFORE_OVERDRAWN = 60;
     static final int DRINK_USE_DURATION_TICKS = 20;
@@ -110,5 +114,21 @@ public class ConfigUtil {
 
     public static float getSweepingDamageScale() {
         return CNConfig.sweepingDamageScale.get().floatValue();
+    }
+
+    public static double getBaseAttackRange() {
+        return CNConfig.attackReachBaseValue.get();
+    }
+
+    public static double getBaseAttackDamage() {
+        return CNConfig.attackDamageBaseValue.get();
+    }
+
+    public static double getBaseAttackSpeed() {
+        return BASE_ATTACK_SPEED;
+    }
+
+    public static double getBaseAttackKnockback() {
+        return BASE_ATTACK_KNOCKBACK;
     }
 }

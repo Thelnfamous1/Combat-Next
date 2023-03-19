@@ -17,7 +17,11 @@ public class CNConfig {
 
     public static ForgeConfigSpec.DoubleValue arrowInstantEffectScale;
     public static ForgeConfigSpec.DoubleValue attackBonusReachWhenSupercharged;
+    public static ForgeConfigSpec.DoubleValue attackDamageBaseValue;
+    public static ForgeConfigSpec.DoubleValue attackKnockbackBaseValue;
     public static ForgeConfigSpec.IntValue attackMissCooldownTicks;
+    public static ForgeConfigSpec.DoubleValue attackReachBaseValue;
+    public static ForgeConfigSpec.DoubleValue attackSpeedBaseValue;
     public static ForgeConfigSpec.DoubleValue attackStrengthScaleSuperchargeThreshold;
     public static ForgeConfigSpec.DoubleValue bowArrowInaccuracy;
     public static ForgeConfigSpec.IntValue bowTicksBeforeOverdrawn;
@@ -101,14 +105,38 @@ public class CNConfig {
         createConfigCategory(builder, " This category holds configs that affect melee combat.", "Melee Combat Config Options", b -> {
             attackBonusReachWhenSupercharged = b
                     .comment("""
-                            Adjusts the bonus attack reach given when the held weapon is "supercharged".
+                            Adjusts the bonus attack reach given when the held weapon is "supercharged", in blocks.
                             """)
                     .defineInRange("attack_bonus_reach_when_supercharged", ConfigUtil.ATTACK_BONUS_REACH_WHEN_SUPERCHARGED, 0.0D, 3.0D);
+            attackDamageBaseValue = b
+                    .comment("""
+                            Adjusts the base attack damage value of players, in half-hearts.
+                            In vanilla, this value is 1.0.
+                            """)
+                    .defineInRange("attack_damage_base_value", ConfigUtil.BASE_ATTACK_DAMAGE, 0.0D, 2048.0D);
+            attackKnockbackBaseValue = b
+                    .comment("""
+                            Adjusts the base attack knockback value of players.
+                            In vanilla, this value is 0.0.
+                            """)
+                    .defineInRange("attack_knockback_base_value", ConfigUtil.BASE_ATTACK_KNOCKBACK, 0.0D, 5.0D);
             attackMissCooldownTicks = b
                     .comment("""
                             Adjusts the attack cooldown ticks (1/20 seconds) given when missing an attack.
                             """)
                     .defineInRange("attack_miss_cooldown_ticks", ConfigUtil.ATTACK_MISS_COOLDOWN_TICKS, 0, 100);
+            attackReachBaseValue = b
+                    .comment("""
+                            Adjusts the base attack reach value of players, in blocks.
+                            In vanilla, this value is 3.0.
+                            """)
+                    .defineInRange("attack_reach_base_value", ConfigUtil.BASE_ATTACK_RANGE, 0.0D, 1024.0D);
+            attackSpeedBaseValue = b
+                    .comment("""
+                            Adjusts the base attack speed value of players, in attacks per second.
+                            In vanilla, this value is 4.0.
+                            """)
+                    .defineInRange("attack_speed_base_value", ConfigUtil.BASE_ATTACK_SPEED, 0.0D, 1024.0D);
             attackStrengthScaleSuperchargeThreshold = b
                     .comment("""
                             Adjusts the threshold at which the player's attack strength scale is considered "supercharged".
