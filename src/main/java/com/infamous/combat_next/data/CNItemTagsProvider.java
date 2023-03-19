@@ -23,5 +23,8 @@ public class CNItemTagsProvider extends ItemTagsProvider {
                 .add(Items.POTION)
                 .add(Items.MILK_BUCKET)
                 .add(Items.HONEY_BOTTLE);
+        this.tag(CNTags.SLOW_THROWABLES)
+                .add(Items.EGG)
+                .add(Items.SNOWBALL);
     }
 }

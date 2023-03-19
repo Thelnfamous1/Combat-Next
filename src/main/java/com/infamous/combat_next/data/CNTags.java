@@ -9,4 +9,6 @@ import net.minecraft.world.item.Item;
 public class CNTags {
 
     public static final TagKey<Item> FAST_DRINKS = ItemTags.create(new ResourceLocation(CombatNext.MODID, "fast_drinks"));
+
+    public static final TagKey<Item> SLOW_THROWABLES = ItemTags.create(new ResourceLocation(CombatNext.MODID, "slow_throwables"));
 }

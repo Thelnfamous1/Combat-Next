@@ -2,6 +2,7 @@ package com.infamous.combat_next;
 
 import com.infamous.combat_next.client.ClientCombatUtil;
 import com.infamous.combat_next.config.ConfigUtil;
+import com.infamous.combat_next.data.CNTags;
 import com.infamous.combat_next.network.CNNetwork;
 import com.infamous.combat_next.network.ClientboundConfigSyncPacket;
 import com.infamous.combat_next.util.CombatExtensions;
@@ -84,7 +85,7 @@ public class ForgeEventHandler {
         if(event.isCanceled()) return;
 
         ItemStack itemStack = event.getItemStack();
-        if(itemStack.is(Items.EGG) || itemStack.is(Items.SNOWBALL)){
+        if(itemStack.is(CNTags.SLOW_THROWABLES)){
             ItemCooldowns cooldowns = event.getEntity().getCooldowns();
             if(!cooldowns.isOnCooldown(itemStack.getItem())){
                 cooldowns.addCooldown(itemStack.getItem(), ConfigUtil.getThrowableItemCooldown());
