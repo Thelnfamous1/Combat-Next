@@ -2,6 +2,7 @@ package com.infamous.combat_next.util;
 
 import com.infamous.combat_next.CombatNext;
 import com.infamous.combat_next.client.ClientCombatUtil;
+import com.infamous.combat_next.config.ConfigUtil;
 import com.infamous.combat_next.mixin.ItemAccessor;
 import com.infamous.combat_next.mixin.LivingEntityAccessor;
 import com.infamous.combat_next.mixin.ThrownTridentAccessor;
@@ -46,31 +47,10 @@ import java.util.function.Predicate;
 
 public class CombatUtil {
     private static final UUID BONUS_REACH_MODIFIER_UUID = UUID.fromString("30a9271c-d6b2-4651-b088-800acc43f282");
-
     private static final String DAMAGE_BOOST_MODIFIER_UUID = "648D7064-6A60-4F59-8ABE-C2C23A6DD7A9";
-    private static final double DAMAGE_BOOST_MODIFIER_VALUE = 0.2D;
-    private static final int DEFAULT_SHIELD_STUN_TICKS = 32;
-    private static final int CLEAVING_TICKS_PER_LEVEL = 10;
-    public static final double SHIELD_ARC = -5.0D / 18.0D; // -5/18 * pi = -50 degrees
-    public static final int BASE_HEAL_AMOUNT = 6;
-    private static final int SNOWBALL_MAX_STACK_SIZE = 64;
-    private static final int POTION_MAX_STACK_SIZE = 16;
-    public static final int DRINK_USE_DURATION = 20;
-    public static final int FOOD_LEVEL_FOR_FOOD_HEALING = 7;
-    public static final int TICKS_BEFORE_FOOD_HEALING = 40;
-    public static final int HEALING_FOOD_LEVEL_DECREASE_TIME = 2;
-    private static final double MIN_HITBOX_SIZE_FOR_ATTACK = 0.9D;
-    public static final int OPTIMAL_CHARGE_TIME = 60;
-    public static final float NEW_ARROW_INACCURACY = 0.25F;
-    private static final int MISSED_ATTACK_COOLDOWN = 4;
-    public static final double INSTANT_ARROW_EFFECT_MULTIPLIER = 0.375D;
-    public static final float MAX_SHIELD_BLOCKED_DAMAGE = 5.0F;
-    public static final int THROWABLE_ITEM_COOLDOWN = 4;
-    public static final float SHIELD_KNOCKBACK_SCALE = 0.5F;
-    public static final float SUPERCHARGED_MAX_ATTACK_STRENGTH = 2.0F;
     private static final String BONUS_REACH_MODIFIER_NAME = new ResourceLocation(CombatNext.MODID, "bonus_reach").toString();
-    private static final double BONUS_REACH = 1.0D;
-    public static final float SWEEPING_DAMAGE_SCALE = 0.5F;
+    private static final float IMPALING_DAMAGE_SCALE = 2.5F;
+    private static final int SHIELD_BREAK_EVENT_ID = 30;
 
     public static void registerTridentDispenseBehavior(){
         DispenserBlock.registerBehavior(Items.TRIDENT, new AbstractProjectileDispenseBehavior() {
@@ -87,52 +67,52 @@ public class CombatUtil {
         CombatNext.LOGGER.info("Registered DispenseItemBehavior for Item {}", "minecraft:trident");
     }
 
-    public static void modifyStrengthEffect(){
-        MobEffects.DAMAGE_BOOST.addAttributeModifier(Attributes.ATTACK_DAMAGE, DAMAGE_BOOST_MODIFIER_UUID, DAMAGE_BOOST_MODIFIER_VALUE, AttributeModifier.Operation.MULTIPLY_TOTAL);
+    private static void modifyStrengthEffect(){
+        MobEffects.DAMAGE_BOOST.addAttributeModifier(Attributes.ATTACK_DAMAGE, DAMAGE_BOOST_MODIFIER_UUID, ConfigUtil.getStrengthEffectModifierValue(), AttributeModifier.Operation.MULTIPLY_TOTAL);
         CombatNext.LOGGER.info("Modified MobEffect {} to have an AttributeModifier for Attribute {} with UUID {}, value of {}, and Operation of {}",
-                "minecraft:strength", Attributes.ATTACK_DAMAGE, DAMAGE_BOOST_MODIFIER_UUID, DAMAGE_BOOST_MODIFIER_VALUE,
+                "minecraft:strength", Attributes.ATTACK_DAMAGE, DAMAGE_BOOST_MODIFIER_UUID, ConfigUtil.getStrengthEffectModifierValue(),
                 AttributeModifier.Operation.MULTIPLY_TOTAL);
     }
 
-    public static void modifyItemMaxStackSizes(){
-        ((ItemAccessor)Items.SNOWBALL).setMaxStackSize(SNOWBALL_MAX_STACK_SIZE);
-        CombatNext.LOGGER.info("Changed max stack size of {} to {}", "minecraft:snowball", SNOWBALL_MAX_STACK_SIZE);
-        ((ItemAccessor)Items.POTION).setMaxStackSize(POTION_MAX_STACK_SIZE);
-        CombatNext.LOGGER.info("Changed max stack size of {} to {}", "minecraft:potion", POTION_MAX_STACK_SIZE);
+    private static void modifyItemMaxStackSizes(){
+        ((ItemAccessor)Items.SNOWBALL).setMaxStackSize(ConfigUtil.getSnowballMaxStackSize());
+        CombatNext.LOGGER.info("Changed max stack size of {} to {}", "minecraft:snowball", ConfigUtil.getSnowballMaxStackSize());
+        ((ItemAccessor)Items.POTION).setMaxStackSize(ConfigUtil.getPotionMaxStackSize());
+        CombatNext.LOGGER.info("Changed max stack size of {} to {}", "minecraft:potion", ConfigUtil.getPotionMaxStackSize());
     }
 
     public static boolean canInterruptConsumption(DamageSource source){
         return source.getDirectEntity() instanceof LivingEntity || (source.isProjectile() && source.getEntity() instanceof LivingEntity);
     }
 
-    public static float recalculateEnchantmentDamage(ItemStack stack, float amount, Entity target){
+    public static float recalculateDamageBonus(ItemStack stack, float base, Entity target){
         int impalingLevel = stack.getEnchantmentLevel(Enchantments.IMPALING);
         if(impalingLevel > 0){
             if(target instanceof LivingEntity victim){
                 float originalBonus = Enchantments.IMPALING.getDamageBonus(impalingLevel, victim.getMobType(), stack);
-                amount -= originalBonus;
+                base -= originalBonus;
             }
-            amount += getImpalingDamageBonus(impalingLevel, target);
+            base += getImpalingDamageBonus(impalingLevel, target);
         }
-        return amount;
+        return base;
     }
 
     public static float getImpalingDamageBonus(int level, Entity target){
-        return target.isInWaterOrRain() ? (float)level * 2.5F : 0.0F;
+        return target.isInWaterOrRain() ? (float)level * IMPALING_DAMAGE_SCALE : 0.0F;
     }
 
     public static void newDisableShield(Player victim, LivingEntity attacker){
         int cleavingLevel = attacker.getMainHandItem().getEnchantmentLevel(EnchantmentRegistry.CLEAVING.get());
-        int cleavingTicks = CLEAVING_TICKS_PER_LEVEL * cleavingLevel;
-        victim.getCooldowns().addCooldown(victim.getUseItem().getItem(), DEFAULT_SHIELD_STUN_TICKS + cleavingTicks);
+        int cleavingTicks = ConfigUtil.getShieldDisableTicksCleaving() * cleavingLevel;
+        victim.getCooldowns().addCooldown(victim.getUseItem().getItem(), ConfigUtil.getShieldDisableTicksBase() + cleavingTicks);
         victim.stopUsingItem();
-        victim.level.broadcastEntityEvent(victim, (byte)30);
+        victim.level.broadcastEntityEvent(victim, (byte) SHIELD_BREAK_EVENT_ID);
     }
 
     public static void attackEmpty(Player player) {
-        if(player.level.isClientSide){
+        if(player.isLocalPlayer()){
             ClientCombatUtil.ensureHasSentCarriedItem();
-            CNNetwork.INSTANCE.sendToServer(ServerboundMissPacket.createMissPacket());
+            CNNetwork.SYNC_CHANNEL.sendToServer(ServerboundMissPacket.createMissPacket());
         }
         if (!player.isSpectator()) {
             sweepAttack(player);
@@ -143,7 +123,7 @@ public class CombatUtil {
     public static void resetAttackStrengthTicker(Player player, boolean miss){
         if(miss){
             LivingEntityAccessor accessor = (LivingEntityAccessor) player;
-            accessor.setAttackStrengthTicker((int) (player.getCurrentItemAttackStrengthDelay() - MISSED_ATTACK_COOLDOWN));
+            accessor.setAttackStrengthTicker((int) (player.getCurrentItemAttackStrengthDelay() - ConfigUtil.getAttackMissCooldownTicks()));
         } else{
             player.resetAttackStrengthTicker();
         }
@@ -156,6 +136,7 @@ public class CombatUtil {
         float attackStrengthScale = player.getAttackStrengthScale(0.5F);
         attackDamage *= 0.2F + attackStrengthScale * attackStrengthScale * 0.8F;
         damageBonus *= attackStrengthScale;
+        damageBonus = scaleDamageBonus(player, damageBonus);
         if (attackDamage > 0.0F || damageBonus > 0.0F) {
             boolean fullStrength = attackStrengthScale > 0.9F;
             boolean sprintAttack = player.isSprinting() && fullStrength;
@@ -168,7 +149,7 @@ public class CombatUtil {
             double walkDistD = player.walkDist - player.walkDistO;
             if (fullStrength && !critAttack && !sprintAttack && player.isOnGround() && walkDistD < (double)player.getSpeed()) {
                 ItemStack itemInHand = player.getItemInHand(InteractionHand.MAIN_HAND);
-                sweepAttack = itemInHand.getEnchantmentLevel(Enchantments.SWEEPING_EDGE) > 0;
+                sweepAttack = canSweepAttack(itemInHand);
             }
 
             if(sweepAttack){
@@ -176,7 +157,7 @@ public class CombatUtil {
 
                 for(LivingEntity sweepTarget : player.level.getEntitiesOfClass(LivingEntity.class, getSweepHitBox(player, player.getItemInHand(InteractionHand.MAIN_HAND)))) {
                     if (sweepTarget != player && !player.isAlliedTo(sweepTarget) && (!(sweepTarget instanceof ArmorStand armorStand) || !armorStand.isMarker()) && player.canHit(sweepTarget, 0)) { // Original check was dist < 3, range is 3, so vanilla used padding=0
-                        sweepTarget.knockback(0.4D, Mth.sin(player.getYRot() * ((float)Math.PI / 180F)), -Mth.cos(player.getYRot() * ((float)Math.PI / 180F)));
+                        sweepTarget.knockback(0.4D, Mth.sin(player.getYRot() * (Mth.PI / 180F)), -Mth.cos(player.getYRot() * Mth.PI / 180F));
                         sweepTarget.hurt(DamageSource.playerAttack(player), sweepDamage);
                     }
                 }
@@ -187,9 +168,13 @@ public class CombatUtil {
         }
     }
 
+    public static boolean canSweepAttack(ItemStack stack) {
+        return stack.getEnchantmentLevel(Enchantments.SWEEPING_EDGE) > 0;
+    }
+
     private static AABB getSweepHitBox(Player player, ItemStack weapon) {
-        double xShift = (-Mth.sin(player.yBodyRot * ((float)Math.PI / 180F))) * 2.0D;
-        double zShift = Mth.cos(player.yBodyRot * ((float)Math.PI / 180F)) * 2.0D;
+        double xShift = (-Mth.sin(player.yBodyRot * (Mth.PI / 180F))) * 2.0D;
+        double zShift = Mth.cos(player.yBodyRot * (Mth.PI  / 180F)) * 2.0D;
         // we use the player as the "target", so weapons with custom sweep hitboxes work
         return weapon.getSweepHitBox(player, player).move(xShift, 0.0, zShift);
     }
@@ -199,7 +184,7 @@ public class CombatUtil {
     }
 
     public static AABB adjustBBForRayTrace(AABB boundingBox) {
-        if(boundingBox.getSize() < MIN_HITBOX_SIZE_FOR_ATTACK){
+        if(boundingBox.getSize() < ConfigUtil.getHitboxMinSizeForHitscan()){
             double xAdjust = adjustSize(boundingBox.getXsize());
             double yAdjust = adjustSize(boundingBox.getYsize());
             double zAdjust = adjustSize(boundingBox.getZsize());
@@ -209,7 +194,7 @@ public class CombatUtil {
     }
 
     private static double adjustSize(double size) {
-        return size < MIN_HITBOX_SIZE_FOR_ATTACK ? (MIN_HITBOX_SIZE_FOR_ATTACK - size) / 2.0D : 0.0D;
+        return size < ConfigUtil.getHitboxMinSizeForHitscan() ? (ConfigUtil.getHitboxMinSizeForHitscan() - size) / 2.0D : 0.0D;
     }
 
     public static boolean hitThroughBlock(Level level, BlockPos blockPos, Player player, Predicate<Player> hitEntity){
@@ -271,20 +256,20 @@ public class CombatUtil {
                 }
             } else if(add){
                 entityReachInstance.addTransientModifier(
-                        new AttributeModifier(BONUS_REACH_MODIFIER_UUID, BONUS_REACH_MODIFIER_NAME, BONUS_REACH, AttributeModifier.Operation.ADDITION));
+                        new AttributeModifier(BONUS_REACH_MODIFIER_UUID, BONUS_REACH_MODIFIER_NAME, ConfigUtil.getAttackBonusReachWhenSupercharged(), AttributeModifier.Operation.ADDITION));
             }
         }
     }
 
     public static boolean isSupercharged(Player player, float partialTick) {
-        return getSuperchargedAttackStrengthScale(player, partialTick) >= SUPERCHARGED_MAX_ATTACK_STRENGTH;
+        return getSuperchargedAttackStrengthScale(player, partialTick) >= ConfigUtil.getAttackScaleSuperchargeThreshold();
     }
 
     private static float getSuperchargedAttackStrengthScale(Player player, float partialTick) {
-        return Mth.clamp(((float) ((LivingEntityAccessor) player).getAttackStrengthTicker() + partialTick) / player.getCurrentItemAttackStrengthDelay(), 0.0F, SUPERCHARGED_MAX_ATTACK_STRENGTH);
+        return Mth.clamp(((float) ((LivingEntityAccessor) player).getAttackStrengthTicker() + partialTick) / player.getCurrentItemAttackStrengthDelay(), 0.0F, ConfigUtil.getAttackScaleSuperchargeThreshold());
     }
 
-    public static float scaleEnchantmentDamage(LivingEntity player, float base) {
+    public static float scaleDamageBonus(LivingEntity player, float base) {
         AttributeInstance attributeInstance = player.getAttribute(Attributes.ATTACK_DAMAGE);
         float result = base;
 
@@ -298,5 +283,10 @@ public class CombatUtil {
             }
         }
         return result;
+    }
+
+    public static void applySyncedConfigs() {
+        modifyStrengthEffect();
+        modifyItemMaxStackSizes();
     }
 }

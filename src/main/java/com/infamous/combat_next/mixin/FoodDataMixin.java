@@ -1,6 +1,6 @@
 package com.infamous.combat_next.mixin;
 
-import com.infamous.combat_next.util.CombatUtil;
+import com.infamous.combat_next.config.ConfigUtil;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(FoodData.class)
 public class FoodDataMixin {
 
-    private int healingFoodLevelDecreaseTimer = CombatUtil.HEALING_FOOD_LEVEL_DECREASE_TIME;
+    private int healingFoodLevelDecreaseTimer = ConfigUtil.getNaturalHealingTicksBeforeFoodLevelDecrease();
     @Shadow private int foodLevel;
 
     @Shadow private int tickTimer;
@@ -23,12 +23,12 @@ public class FoodDataMixin {
 
     @ModifyConstant(method = "tick", constant = @Constant(intValue = 18, ordinal = 0))
     private int getFoodLevelForNaturalHealing(int constant){
-        return CombatUtil.FOOD_LEVEL_FOR_FOOD_HEALING;
+        return ConfigUtil.getNaturalHealingMinFoodLevel();
     }
 
     @ModifyConstant(method = "tick", constant = @Constant(intValue = 80, ordinal = 0))
     private int getTicksBeforeNaturalHealing(int constant){
-        return CombatUtil.TICKS_BEFORE_FOOD_HEALING;
+        return ConfigUtil.getNaturalHealingTicksBeforeHeal();
     }
 
     @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/food/FoodData;addExhaustion(F)V", ordinal = 1), cancellable = true)
@@ -36,7 +36,7 @@ public class FoodDataMixin {
         ci.cancel();
         this.healingFoodLevelDecreaseTimer--;
         if(this.healingFoodLevelDecreaseTimer <= 0){
-            this.healingFoodLevelDecreaseTimer = CombatUtil.HEALING_FOOD_LEVEL_DECREASE_TIME;
+            this.healingFoodLevelDecreaseTimer = ConfigUtil.getNaturalHealingTicksBeforeFoodLevelDecrease();
             this.foodLevel--;
         }
         // set after addExhaustion was called originally, need to also do it here

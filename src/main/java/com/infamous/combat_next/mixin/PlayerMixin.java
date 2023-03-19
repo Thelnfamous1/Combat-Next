@@ -7,7 +7,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Player.class)
 public abstract class PlayerMixin extends LivingEntity{
 
-    private float currentEnchantmentDamage;
+    private float currentDamageBonus;
     @Nullable
     private CriticalHitEvent criticalHitEvent;
 
@@ -39,18 +38,18 @@ public abstract class PlayerMixin extends LivingEntity{
 
     @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 1), ordinal = 3)
     private boolean canSweep(boolean original){
-        return this.getItemInHand(InteractionHand.MAIN_HAND).getEnchantmentLevel(Enchantments.SWEEPING_EDGE) > 0;
+        return CombatUtil.canSweepAttack(this.getItemInHand(InteractionHand.MAIN_HAND));
     }
 
     @SuppressWarnings("InvalidInjectorMethodSignature")
     @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 0), ordinal = 1)
-    private float modifyEnchantmentDamage1(float original, Entity target){
-        return CombatUtil.recalculateEnchantmentDamage(this.getMainHandItem(), original, target);
+    private float modifyDamageBonus1(float original, Entity target){
+        return CombatUtil.recalculateDamageBonus(this.getMainHandItem(), original, target);
     }
 
     @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 1), ordinal = 1)
-    private float modifyEnchantmentDamage2(float original, Entity target){
-        return CombatUtil.recalculateEnchantmentDamage(this.getMainHandItem(), original, target);
+    private float modifyDamageBonus2(float original, Entity target){
+        return CombatUtil.recalculateDamageBonus(this.getMainHandItem(), original, target);
     }
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;resetAttackStrengthTicker()V"))
@@ -59,10 +58,10 @@ public abstract class PlayerMixin extends LivingEntity{
     }
 
     @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 2), ordinal = 1)
-    private float scaleAndStoreEnchantmentDamage(float original){
-        float enchantmentDamage = CombatUtil.scaleEnchantmentDamage(this, original);
-        this.currentEnchantmentDamage = enchantmentDamage;
-        return enchantmentDamage;
+    private float scaleAndStoreDamageBonus(float original){
+        float damageBonus = CombatUtil.scaleDamageBonus(this, original);
+        this.currentDamageBonus = damageBonus;
+        return damageBonus;
     }
 
     @ModifyVariable(method = "attack", at = @At(value = "STORE"), ordinal = 0)
@@ -72,9 +71,9 @@ public abstract class PlayerMixin extends LivingEntity{
     }
 
     @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 3), ordinal = 0)
-    private float addCritEnchantmentDamage(float original){
+    private float addCritDamageBonus(float original){
         if(this.criticalHitEvent != null){
-            original += ((this.criticalHitEvent.getDamageModifier() - 1.0F) * this.currentEnchantmentDamage);
+            original += ((this.criticalHitEvent.getDamageModifier() - 1.0F) * this.currentDamageBonus);
         }
         return original;
     }

@@ -67,6 +67,6 @@ public abstract class ThrownTridentMixin extends AbstractArrow {
 
     @ModifyVariable(method = "onHitEntity", at = @At(value = "STORE", ordinal = 1), ordinal = 0)
     private float modifyEnchantmentDamage(float original, EntityHitResult entityHitResult){
-        return CombatUtil.recalculateEnchantmentDamage(this.tridentItem, original, entityHitResult.getEntity());
+        return CombatUtil.recalculateDamageBonus(this.tridentItem, original, entityHitResult.getEntity());
     }
 }

@@ -1,7 +1,8 @@
 package com.infamous.combat_next.mixin;
 
+import com.infamous.combat_next.config.ConfigUtil;
 import com.infamous.combat_next.util.CombatExtensions;
-import com.infamous.combat_next.util.CombatUtil;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -32,8 +33,8 @@ public abstract class LivingEntityMixin extends Entity implements CombatExtensio
     }
 
     @ModifyConstant(method = "isDamageSourceBlocked", constant = @Constant(doubleValue = 0.0D, ordinal = 1))
-    double getShieldArc(double vanilla){
-        return CombatUtil.SHIELD_ARC;
+    double getMaxDotProduct(double vanilla){
+        return Mth.cos(ConfigUtil.getShieldProtectionArc() * (Mth.PI / 360.0F)) * -1.0D;
     }
 
     @Inject(method = "knockback", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getDeltaMovement()Lnet/minecraft/world/phys/Vec3;"))

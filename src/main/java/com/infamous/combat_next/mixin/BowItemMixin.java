@@ -1,6 +1,6 @@
 package com.infamous.combat_next.mixin;
 
-import com.infamous.combat_next.util.CombatUtil;
+import com.infamous.combat_next.config.ConfigUtil;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
@@ -18,13 +18,13 @@ public abstract class BowItemMixin {
     @ModifyConstant(method = "releaseUsing", constant = @Constant(floatValue = 1.0F, ordinal = 0))
     private float getInaccuracy(float constant, ItemStack stack, Level level, LivingEntity livingEntity, int useItemRemainingTicks){
         int useTicks = this.getUseDuration(stack) - useItemRemainingTicks;
-        return useTicks <= CombatUtil.OPTIMAL_CHARGE_TIME ? 0.0F : CombatUtil.NEW_ARROW_INACCURACY;
+        return useTicks <= ConfigUtil.getBowTicksBeforeOverdrawn() ? 0.0F : ConfigUtil.getBowArrowInaccuracy();
     }
 
     @ModifyConstant(method = "releaseUsing", constant = @Constant(floatValue = 1.0F, ordinal = 1))
     private float getMaxPower(float constant, ItemStack stack, Level level, LivingEntity livingEntity, int useItemRemainingTicks){
         int useTicks = this.getUseDuration(stack) - useItemRemainingTicks;
-        return useTicks > CombatUtil.OPTIMAL_CHARGE_TIME ? 5.0F : constant; // 5.0F is just to cause the if check to fail for making an arrow crit
+        return useTicks > ConfigUtil.getBowTicksBeforeOverdrawn() ? 5.0F : constant; // 5.0F is just to cause the if check to fail for making an arrow crit
     }
 
 

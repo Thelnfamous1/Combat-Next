@@ -19,6 +19,6 @@ public abstract class MobMixin extends LivingEntity {
 
     @ModifyVariable(method = "doHurtTarget", at = @At(value = "STORE", ordinal = 1), ordinal = 0)
     private float modifyEnchantmentDamage(float original, Entity target){
-        return CombatUtil.recalculateEnchantmentDamage(this.getMainHandItem(), original, target);
+        return CombatUtil.recalculateDamageBonus(this.getMainHandItem(), original, target);
     }
 }

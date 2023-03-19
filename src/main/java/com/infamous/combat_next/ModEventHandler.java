@@ -19,8 +19,6 @@ public class ModEventHandler {
         event.enqueueWork(() -> {
             CNNetwork.register();
             CombatUtil.registerTridentDispenseBehavior();
-            CombatUtil.modifyStrengthEffect();
-            CombatUtil.modifyItemMaxStackSizes();
         });
     }
 

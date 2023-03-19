@@ -1,6 +1,9 @@
 package com.infamous.combat_next;
 
 import com.infamous.combat_next.client.ClientCombatUtil;
+import com.infamous.combat_next.config.ConfigUtil;
+import com.infamous.combat_next.network.CNNetwork;
+import com.infamous.combat_next.network.ClientboundConfigSyncPacket;
 import com.infamous.combat_next.util.CombatExtensions;
 import com.infamous.combat_next.util.CombatUtil;
 import com.infamous.combat_next.util.WeaponRebalancing;
@@ -8,6 +11,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,14 +22,11 @@ import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.*;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.event.entity.player.CriticalHitEvent;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.entity.player.*;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.Iterator;
@@ -71,7 +72,7 @@ public class ForgeEventHandler {
 
             if(stack.is(Items.SHIELD)){
                 if(!source.isProjectile() && (!source.isExplosion() || source.getEntity() == user)){
-                    event.setBlockedDamage(Math.min(CombatUtil.MAX_SHIELD_BLOCKED_DAMAGE, amount));
+                    event.setBlockedDamage(Math.min(ConfigUtil.getShieldMaxBlockedDamage(), amount));
                 }
             }
         }
@@ -86,7 +87,7 @@ public class ForgeEventHandler {
         if(itemStack.is(Items.EGG) || itemStack.is(Items.SNOWBALL)){
             ItemCooldowns cooldowns = event.getEntity().getCooldowns();
             if(!cooldowns.isOnCooldown(itemStack.getItem())){
-                cooldowns.addCooldown(itemStack.getItem(), CombatUtil.THROWABLE_ITEM_COOLDOWN);
+                cooldowns.addCooldown(itemStack.getItem(), ConfigUtil.getThrowableItemCooldown());
             }
         }
     }
@@ -172,7 +173,7 @@ public class ForgeEventHandler {
             LivingEntity victim = event.getEntity();
             DamageSource lastBlockedDamageSource = CombatExtensions.cast(victim).getLastBlockedDamageSource();
             if(lastBlockedDamageSource != null && victim.isDamageSourceBlocked(lastBlockedDamageSource)){
-                event.setStrength(event.getStrength() * CombatUtil.SHIELD_KNOCKBACK_SCALE);
+                event.setStrength(event.getStrength() * ConfigUtil.getShieldKnockbackScale());
             }
         }
     }
@@ -216,10 +217,20 @@ public class ForgeEventHandler {
 
     @SubscribeEvent
     static void onPlayerTick(TickEvent.PlayerTickEvent event){
-        if(event.phase == TickEvent.Phase.END && event.side == LogicalSide.SERVER){
-            boolean supercharged = CombatUtil.isSupercharged(event.player, 0.0F);
+        if(event.phase == TickEvent.Phase.END){
+            boolean supercharged = CombatUtil.isSupercharged(event.player, 0.5F);
             CombatUtil.handleBonusReach(event.player, supercharged && !event.player.isCrouching());
         }
+    }
+
+    @SubscribeEvent
+    static void onServerStarting(ServerAboutToStartEvent event){
+        CombatUtil.applySyncedConfigs();
+    }
+
+    @SubscribeEvent
+    static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event){
+        CNNetwork.syncToPlayer((ServerPlayer) event.getEntity(), ClientboundConfigSyncPacket.createConfigSyncPacket());
     }
 
 }
