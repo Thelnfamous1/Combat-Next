@@ -4,7 +4,7 @@ public class ConfigUtil {
     static final double ARROW_INSTANT_EFFECT_SCALE = 0.375D;
     static final double ATTACK_BONUS_REACH_WHEN_SUPERCHARGED = 1.0D;
     static final int ATTACK_MISS_COOLDOWN_TICKS = 4;
-    static final float ATTACK_SCALE_SUPERCHARGE_THRESHOLD = 2.0F;
+    static final float ATTACK_STRENGTH_SCALE_SUPERCHARGE_THRESHOLD = 2.0F;
     static final float BOW_ARROW_INACCURACY = 0.25F;
     static final int BOW_TICKS_BEFORE_OVERDRAWN = 60;
     static final int DRINK_USE_DURATION_TICKS = 20;
@@ -100,8 +100,8 @@ public class ConfigUtil {
         return CNConfig.shieldKnockbackScale.get().floatValue();
     }
 
-    public static float getAttackScaleSuperchargeThreshold() {
-        return CNConfig.attackScaleSuperchargeThreshold.get().floatValue();
+    public static float getAttackStrengthScaleSuperchargeThreshold() {
+        return CNConfig.attackStrengthScaleSuperchargeThreshold.get().floatValue();
     }
 
     public static double getAttackBonusReachWhenSupercharged() {

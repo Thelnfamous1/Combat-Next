@@ -18,7 +18,7 @@ public class CNConfig {
     public static ForgeConfigSpec.DoubleValue arrowInstantEffectScale;
     public static ForgeConfigSpec.DoubleValue attackBonusReachWhenSupercharged;
     public static ForgeConfigSpec.IntValue attackMissCooldownTicks;
-    public static ForgeConfigSpec.DoubleValue attackScaleSuperchargeThreshold;
+    public static ForgeConfigSpec.DoubleValue attackStrengthScaleSuperchargeThreshold;
     public static ForgeConfigSpec.DoubleValue bowArrowInaccuracy;
     public static ForgeConfigSpec.IntValue bowTicksBeforeOverdrawn;
     public static ForgeConfigSpec.IntValue drinkUseDurationTicks;
@@ -109,9 +109,11 @@ public class CNConfig {
                             Adjusts the attack cooldown ticks (1/20 seconds) given when missing an attack.
                             """)
                     .defineInRange("attack_miss_cooldown_ticks", ConfigUtil.ATTACK_MISS_COOLDOWN_TICKS, 0, 100);
-            attackScaleSuperchargeThreshold = b
-                    .comment()
-                    .defineInRange("attack_scale_supercharge_threshold", ConfigUtil.ATTACK_SCALE_SUPERCHARGE_THRESHOLD, 1.0D, 4.0D);
+            attackStrengthScaleSuperchargeThreshold = b
+                    .comment("""
+                            Adjusts the threshold at which the player's attack strength scale is considered "supercharged".
+                            """)
+                    .defineInRange("attack_strength_scale_supercharge_threshold", ConfigUtil.ATTACK_STRENGTH_SCALE_SUPERCHARGE_THRESHOLD, 1.0D, 4.0D);
             sweepingDamageScale = b
                     .comment("""
                             Adjusts how much sweeping damage is scaled by during a sweep attack.
@@ -154,7 +156,7 @@ public class CNConfig {
                     .defineInRange("shield_knockback_scale", ConfigUtil.SHIELD_KNOCKBACK_SCALE, 0.0F, 1.0F);
             shieldMaxBlockedDamage = b
                     .comment("""
-                            Adjusts the maximum damage a vanilla shield will absorb when blocking.
+                            Adjusts the maximum damage (in half-hearts) a vanilla shield will absorb when blocking.
                             """)
                     .defineInRange("shield_max_blocked_damage", ConfigUtil.SHIELD_MAX_BLOCKED_DAMAGE, 0.0F, 1024.0F);
             shieldProtectionArc = b

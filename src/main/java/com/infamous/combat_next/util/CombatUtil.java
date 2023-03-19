@@ -262,11 +262,11 @@ public class CombatUtil {
     }
 
     public static boolean isSupercharged(Player player, float partialTick) {
-        return getSuperchargedAttackStrengthScale(player, partialTick) >= ConfigUtil.getAttackScaleSuperchargeThreshold();
+        return getSuperchargedAttackStrengthScale(player, partialTick) >= ConfigUtil.getAttackStrengthScaleSuperchargeThreshold();
     }
 
     private static float getSuperchargedAttackStrengthScale(Player player, float partialTick) {
-        return Mth.clamp(((float) ((LivingEntityAccessor) player).getAttackStrengthTicker() + partialTick) / player.getCurrentItemAttackStrengthDelay(), 0.0F, ConfigUtil.getAttackScaleSuperchargeThreshold());
+        return Mth.clamp(((float) ((LivingEntityAccessor) player).getAttackStrengthTicker() + partialTick) / player.getCurrentItemAttackStrengthDelay(), 0.0F, ConfigUtil.getAttackStrengthScaleSuperchargeThreshold());
     }
 
     public static float scaleDamageBonus(LivingEntity player, float base) {
