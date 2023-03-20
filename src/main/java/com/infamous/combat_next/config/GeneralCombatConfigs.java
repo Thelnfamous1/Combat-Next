@@ -8,6 +8,7 @@ public class GeneralCombatConfigs {
     private static ForgeConfigSpec.BooleanValue attacksInterruptConsumption;
     private static ForgeConfigSpec.BooleanValue impalingChange;
     private static ForgeConfigSpec.IntValue iFramesLeftBeforeDamageable;
+    private static ForgeConfigSpec.BooleanValue playersAlwaysHurt;
 
     static void createConfigs(ForgeConfigSpec.Builder builder) {
         CNConfig.createConfigCategory(builder, " This category holds configs that affect general combat.", "General Combat Config Options", b -> {
@@ -42,6 +43,12 @@ public class GeneralCombatConfigs {
                             An entity's hitbox with a size smaller than this value will be inflated to it during the hitscan.
                             """)
                     .defineInRange("hitbox_min_size_for_hitscan", 0.9D, 0.0D, 2.0D);
+            playersAlwaysHurt = b
+                    .comment("""
+                            Toggles Players triggering hurt logic even when received damage is zero.
+                            For vanilla, this value is false.
+                            """)
+                    .define("players_always_hurt", true);
         });
     }
 
@@ -63,5 +70,9 @@ public class GeneralCombatConfigs {
 
     public static ForgeConfigSpec.IntValue getIFramesLeftBeforeDamageable() {
         return iFramesLeftBeforeDamageable;
+    }
+
+    public static ForgeConfigSpec.BooleanValue getPlayersAlwaysHurt() {
+        return playersAlwaysHurt;
     }
 }

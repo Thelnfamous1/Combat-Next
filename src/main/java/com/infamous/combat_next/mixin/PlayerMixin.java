@@ -1,5 +1,6 @@
 package com.infamous.combat_next.mixin;
 
+import com.infamous.combat_next.config.GeneralCombatConfigs;
 import com.infamous.combat_next.config.MeleeCombatConfigs;
 import com.infamous.combat_next.config.ShieldCombatConfigs;
 import com.infamous.combat_next.util.CombatUtil;
@@ -37,7 +38,11 @@ public abstract class PlayerMixin extends LivingEntity{
 
     @ModifyConstant(method = "hurt", constant = @Constant(floatValue = 0.0F, ordinal = 1))
     private float bypassZeroDamage(float constant, DamageSource source, float damage){
-        return damage + 1; // impossible to achieve, so guaranteed to fail
+        if(GeneralCombatConfigs.getPlayersAlwaysHurt().get()){
+            return Float.MIN_VALUE; // impossible to achieve, so guaranteed to fail
+        } else{
+            return constant;
+        }
     }
 
     @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 1), ordinal = 3)
