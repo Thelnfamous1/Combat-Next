@@ -1,7 +1,6 @@
 package com.infamous.combat_next.util;
 
 import com.infamous.combat_next.CombatNext;
-import com.infamous.combat_next.config.ConfigUtil;
 import com.infamous.combat_next.mixin.ItemAccessor;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -50,41 +49,41 @@ public class WeaponRebalancing {
                 event.removeAttribute(Attributes.ATTACK_SPEED);
 
                 event.addModifier(Attributes.ATTACK_DAMAGE, getAttackDamage(WeaponType.AXE, tier, getWeaponAttackDamage(tier, AXE_ATTACK_DAMAGE_BASE)));
-                event.addModifier(Attributes.ATTACK_SPEED, getAttackSpeed(WeaponType.AXE, tier, AXE_ATTACK_SPEED - ConfigUtil.getBaseAttackSpeed()));
+                event.addModifier(Attributes.ATTACK_SPEED, getAttackSpeed(WeaponType.AXE, tier, AXE_ATTACK_SPEED - CombatUtil.getDefaultAttributeBaseValue(Attributes.ATTACK_SPEED)));
             } else if(item instanceof HoeItem){
                 event.removeAttribute(Attributes.ATTACK_DAMAGE);
                 event.removeAttribute(Attributes.ATTACK_SPEED);
 
                 event.addModifier(Attributes.ATTACK_DAMAGE, getAttackDamage(WeaponType.HOE, tier, getWeaponAttackDamage(tier, HOE_ATTACK_DAMAGE_BASE)));
                 event.addModifier(Attributes.ATTACK_SPEED, getAttackSpeed(WeaponType.HOE, tier, getHoeAttackSpeed(tier)));
-                event.addModifier(ForgeMod.ATTACK_RANGE.get(), getAttackRange(WeaponType.HOE, tier, HOE_ATTACK_RANGE - ConfigUtil.getBaseAttackRange()));
+                event.addModifier(ForgeMod.ATTACK_RANGE.get(), getAttackRange(WeaponType.HOE, tier, HOE_ATTACK_RANGE - CombatUtil.getBaseAttackRange()));
             } else if(item instanceof PickaxeItem){
                 event.removeAttribute(Attributes.ATTACK_DAMAGE);
                 event.removeAttribute(Attributes.ATTACK_SPEED);
 
                 event.addModifier(Attributes.ATTACK_DAMAGE, getAttackDamage(WeaponType.PICKAXE, tier, getWeaponAttackDamage(tier, PICKAXE_ATTACK_DAMAGE_BASE)));
-                event.addModifier(Attributes.ATTACK_SPEED, getAttackSpeed(WeaponType.PICKAXE, tier, PICKAXE_ATTACK_SPEED - ConfigUtil.getBaseAttackSpeed()));
+                event.addModifier(Attributes.ATTACK_SPEED, getAttackSpeed(WeaponType.PICKAXE, tier, PICKAXE_ATTACK_SPEED - CombatUtil.getDefaultAttributeBaseValue(Attributes.ATTACK_SPEED)));
             } else if(item instanceof ShovelItem){
                 event.removeAttribute(Attributes.ATTACK_DAMAGE);
                 event.removeAttribute(Attributes.ATTACK_SPEED);
 
                 event.addModifier(Attributes.ATTACK_DAMAGE, getAttackDamage(WeaponType.SHOVEL, tier, getWeaponAttackDamage(tier, SHOVEL_ATTACK_DAMAGE_BASE)));
-                event.addModifier(Attributes.ATTACK_SPEED, getAttackSpeed(WeaponType.SHOVEL, tier, SHOVEL_ATTACK_SPEED - ConfigUtil.getBaseAttackSpeed()));
+                event.addModifier(Attributes.ATTACK_SPEED, getAttackSpeed(WeaponType.SHOVEL, tier, SHOVEL_ATTACK_SPEED - CombatUtil.getDefaultAttributeBaseValue(Attributes.ATTACK_SPEED)));
 
             } else if(item instanceof SwordItem){
                 event.removeAttribute(Attributes.ATTACK_DAMAGE);
                 event.removeAttribute(Attributes.ATTACK_SPEED);
 
                 event.addModifier(Attributes.ATTACK_DAMAGE, getAttackDamage(WeaponType.SWORD, tier, getWeaponAttackDamage(tier, SWORD_ATTACK_DAMAGE_BASE)));
-                event.addModifier(Attributes.ATTACK_SPEED, getAttackSpeed(WeaponType.SWORD, tier, SWORD_ATTACK_SPEED - ConfigUtil.getBaseAttackSpeed()));
-                event.addModifier(ForgeMod.ATTACK_RANGE.get(), getAttackRange(WeaponType.SWORD, tier, SWORD_ATTACK_RANGE - ConfigUtil.getBaseAttackRange()));
+                event.addModifier(Attributes.ATTACK_SPEED, getAttackSpeed(WeaponType.SWORD, tier, SWORD_ATTACK_SPEED - CombatUtil.getDefaultAttributeBaseValue(Attributes.ATTACK_SPEED)));
+                event.addModifier(ForgeMod.ATTACK_RANGE.get(), getAttackRange(WeaponType.SWORD, tier, SWORD_ATTACK_RANGE - CombatUtil.getBaseAttackRange()));
             }
         } else if(item == Items.TRIDENT){
             event.removeAttribute(Attributes.ATTACK_DAMAGE);
             event.removeAttribute(Attributes.ATTACK_SPEED);
-            event.addModifier(Attributes.ATTACK_DAMAGE, getAttackDamage(WeaponType.TRIDENT, TRIDENT_DUMMY_TIER, TRIDENT_ATTACK_DAMAGE - ConfigUtil.getBaseAttackDamage()));
-            event.addModifier(Attributes.ATTACK_SPEED, getAttackSpeed(WeaponType.TRIDENT, TRIDENT_DUMMY_TIER, TRIDENT_ATTACK_SPEED - ConfigUtil.getBaseAttackSpeed()));
-            event.addModifier(ForgeMod.ATTACK_RANGE.get(), getAttackRange(WeaponType.TRIDENT, TRIDENT_DUMMY_TIER, TRIDENT_ATTACK_RANGE - ConfigUtil.getBaseAttackRange()));
+            event.addModifier(Attributes.ATTACK_DAMAGE, getAttackDamage(WeaponType.TRIDENT, TRIDENT_DUMMY_TIER, TRIDENT_ATTACK_DAMAGE - CombatUtil.getBaseAttackDamage()));
+            event.addModifier(Attributes.ATTACK_SPEED, getAttackSpeed(WeaponType.TRIDENT, TRIDENT_DUMMY_TIER, TRIDENT_ATTACK_SPEED - CombatUtil.getDefaultAttributeBaseValue(Attributes.ATTACK_SPEED)));
+            event.addModifier(ForgeMod.ATTACK_RANGE.get(), getAttackRange(WeaponType.TRIDENT, TRIDENT_DUMMY_TIER, TRIDENT_ATTACK_RANGE - CombatUtil.getBaseAttackRange()));
         }
     }
 
@@ -109,7 +108,7 @@ public class WeaponRebalancing {
     }
 
     private static double getWeaponAttackDamage(Tiers tier, double base) {
-        double attackDamage = ConfigUtil.getBaseAttackDamage();
+        double attackDamage = CombatUtil.getBaseAttackDamage();
         double weaponDamage = WeaponRebalancing.calculateAttackDamage(tier, base);
         return weaponDamage - attackDamage;
     }
@@ -132,7 +131,7 @@ public class WeaponRebalancing {
     }
 
     private static double getHoeAttackSpeed(Tiers tier) {
-        double attackSpeed = ConfigUtil.getBaseAttackSpeed();
+        double attackSpeed = CombatUtil.getDefaultAttributeBaseValue(Attributes.ATTACK_SPEED);
         double weaponSpeed = calculateAttackSpeed(tier);
         return weaponSpeed - attackSpeed;
     }

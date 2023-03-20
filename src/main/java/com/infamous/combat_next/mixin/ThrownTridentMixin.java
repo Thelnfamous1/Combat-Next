@@ -1,12 +1,15 @@
 package com.infamous.combat_next.mixin;
 
+import com.infamous.combat_next.config.RangedCombatConfigs;
 import com.infamous.combat_next.util.CombatUtil;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.ThrownTrident;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -14,7 +17,7 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(ThrownTrident.class)
 public abstract class ThrownTridentMixin extends AbstractArrow {
@@ -29,8 +32,6 @@ public abstract class ThrownTridentMixin extends AbstractArrow {
 
     @Shadow @Final private static EntityDataAccessor<Byte> ID_LOYALTY;
 
-    @Shadow private ItemStack tridentItem;
-
     @Override
     public void outOfWorld() {
         if(!this.returnFromVoid()){
@@ -40,7 +41,7 @@ public abstract class ThrownTridentMixin extends AbstractArrow {
 
     private boolean returnFromVoid() {
         int loyalty = this.entityData.get(ID_LOYALTY);
-        if(loyalty > 0) {
+        if(loyalty > 0 && RangedCombatConfigs.getTridentLoyaltyReturnFromVoid().get()) {
             if (!this.isAcceptibleReturnOwner()) {
                 return false;
             } else {
@@ -65,8 +66,10 @@ public abstract class ThrownTridentMixin extends AbstractArrow {
         }
     }
 
-    @ModifyVariable(method = "onHitEntity", at = @At(value = "STORE", ordinal = 1), ordinal = 0)
-    private float modifyEnchantmentDamage(float original, EntityHitResult entityHitResult){
-        return CombatUtil.recalculateDamageBonus(this.tridentItem, original, entityHitResult.getEntity());
+    @Redirect(method = "onHitEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/enchantment/EnchantmentHelper;getDamageBonus(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/MobType;)F"))
+    private float wrapGetDamageBonus(ItemStack stack, MobType mobType, EntityHitResult entityHitResult){
+        float damageBonus = EnchantmentHelper.getDamageBonus(stack, mobType);
+        damageBonus = CombatUtil.recalculateDamageBonus(stack, damageBonus, entityHitResult.getEntity());
+        return damageBonus;
     }
 }

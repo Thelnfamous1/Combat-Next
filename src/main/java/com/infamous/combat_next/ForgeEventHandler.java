@@ -1,7 +1,8 @@
 package com.infamous.combat_next;
 
+import com.infamous.combat_next.capability.PlayerCapability;
 import com.infamous.combat_next.client.ClientCombatUtil;
-import com.infamous.combat_next.config.ConfigUtil;
+import com.infamous.combat_next.config.*;
 import com.infamous.combat_next.data.CNTags;
 import com.infamous.combat_next.network.CNNetwork;
 import com.infamous.combat_next.network.ClientboundConfigSyncPacket;
@@ -17,6 +18,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.*;
@@ -36,16 +38,18 @@ public class ForgeEventHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     static void onAttributeModification(ItemAttributeModifierEvent event){
-        ItemStack stack = event.getItemStack();
-        Item item = stack.getItem();
+        if(MeleeCombatConfigs.getWeaponRebalancing().get()){
+            ItemStack stack = event.getItemStack();
+            Item item = stack.getItem();
 
-        EquipmentSlot slot = event.getSlotType();
-        EquipmentSlot desired = LivingEntity.getEquipmentSlotForItem(stack);
-        if(slot != desired) return;
-        //noinspection ConstantConditions
-        if(stack.hasTag() && stack.getTag().contains(ATTRIBUTE_MODIFIERS_TAG)) return;
+            EquipmentSlot slot = event.getSlotType();
+            EquipmentSlot desired = LivingEntity.getEquipmentSlotForItem(stack);
+            if(slot != desired) return;
+            //noinspection ConstantConditions
+            if(stack.hasTag() && stack.getTag().contains(ATTRIBUTE_MODIFIERS_TAG)) return;
 
-        WeaponRebalancing.modifyWeaponAttributes(event, item);
+            WeaponRebalancing.modifyWeaponAttributes(event, item);
+        }
     }
 
     @SubscribeEvent
@@ -53,7 +57,7 @@ public class ForgeEventHandler {
         DamageSource source = event.getSource();
         LivingEntity victim = event.getEntity();
 
-        if(source.isProjectile()){
+        if(source.isProjectile() && RangedCombatConfigs.getProjectileNoIFrames().get()){
             victim.invulnerableTime = 0;
         }
     }
@@ -67,9 +71,9 @@ public class ForgeEventHandler {
             DamageSource source = event.getDamageSource();
             CombatExtensions.cast(user).setLastBlockedDamageSource(source);
 
-            if(stack.is(Items.SHIELD)){
-                if(!source.isProjectile() && (!source.isExplosion() || source.getEntity() == user)){
-                    event.setBlockedDamage(Math.min(ConfigUtil.getShieldMaxBlockedDamage(), amount));
+            if(stack.is(Items.SHIELD) && ShieldCombatConfigs.shieldReduceDamageBlocked.get()){
+                if(!source.isProjectile() && !source.isExplosion()){
+                    event.setBlockedDamage(Math.min(ShieldCombatConfigs.shieldMaxBlockedDamage.get().floatValue(), amount));
                 }
             }
         }
@@ -84,7 +88,7 @@ public class ForgeEventHandler {
         if(itemStack.is(CNTags.SLOW_THROWABLES)){
             ItemCooldowns cooldowns = event.getEntity().getCooldowns();
             if(!cooldowns.isOnCooldown(itemStack.getItem())){
-                cooldowns.addCooldown(itemStack.getItem(), ConfigUtil.getThrowableItemCooldown());
+                cooldowns.addCooldown(itemStack.getItem(), RangedCombatConfigs.getThrowableItemCooldown().get());
             }
         }
     }
@@ -102,7 +106,7 @@ public class ForgeEventHandler {
     @SubscribeEvent
     static void onLivingAttackEvent(LivingAttackEvent event){
         if(!event.isCanceled()){
-            if(CombatUtil.canInterruptConsumption(event.getSource())){
+            if(CombatUtil.canInterruptConsumption(event.getSource()) && GeneralCombatConfigs.getAttacksInterruptConsumption().get()){
                 LivingEntity victim = event.getEntity();
                 ItemStack useItem = victim.getUseItem();
                 UseAnim useAnimation = useItem.getUseAnimation();
@@ -115,11 +119,13 @@ public class ForgeEventHandler {
 
     @SubscribeEvent
     static void onItemTooltip(ItemTooltipEvent event){
-        Player player = event.getEntity();
-        if(player == null) return;
-        ItemStack stack = event.getItemStack();
-        List<Component> toolTips = event.getToolTip();
-        WeaponRebalancing.adjustItemTooltip(player, stack, toolTips);
+        if(MeleeCombatConfigs.getWeaponRebalancing().get()){
+            Player player = event.getEntity();
+            if(player == null) return;
+            ItemStack stack = event.getItemStack();
+            List<Component> toolTips = event.getToolTip();
+            WeaponRebalancing.adjustItemTooltip(player, stack, toolTips);
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -128,7 +134,7 @@ public class ForgeEventHandler {
             LivingEntity victim = event.getEntity();
             DamageSource lastBlockedDamageSource = CombatExtensions.cast(victim).getLastBlockedDamageSource();
             if(lastBlockedDamageSource != null && victim.isDamageSourceBlocked(lastBlockedDamageSource)){
-                event.setStrength(event.getStrength() * ConfigUtil.getShieldKnockbackScale());
+                event.setStrength(event.getStrength() * ShieldCombatConfigs.shieldKnockbackScale.get().floatValue());
             }
         }
     }
@@ -151,21 +157,25 @@ public class ForgeEventHandler {
     @SubscribeEvent
     static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event){
         if(!event.isCanceled()){
-            Player player = event.getEntity();
-            boolean hitThroughBlock = CombatUtil.hitThroughBlock(event.getLevel(), event.getPos(), player,
-                    player.isLocalPlayer() ? ClientCombatUtil::hitEntity : CombatUtil::hitEntity);
-            event.setCanceled(hitThroughBlock);
-            if(hitThroughBlock) event.setUseBlock(Event.Result.DENY);
+            if(MeleeCombatConfigs.getAttackThroughNonSolidBlocks().get()){
+                Player player = event.getEntity();
+                boolean hitThroughBlock = CombatUtil.hitThroughBlock(event.getLevel(), event.getPos(), player,
+                        player.isLocalPlayer() ? ClientCombatUtil::hitEntity : CombatUtil::hitEntity);
+                event.setCanceled(hitThroughBlock);
+                if(hitThroughBlock) event.setUseBlock(Event.Result.DENY);
+            }
         }
     }
 
     @SubscribeEvent
     static void onCriticalHit(CriticalHitEvent event){
         if(!event.isVanillaCritical()){
-            Player player = event.getEntity();
-            boolean sprintCritical = CombatUtil.isSprintCritical(player, event.getTarget());
-            if(sprintCritical){
-                event.setResult(Event.Result.ALLOW);
+            if(MeleeCombatConfigs.getAttackCriticalWhenSprinting().get()){
+                Player player = event.getEntity();
+                boolean sprintCritical = CombatUtil.isSprintCritical(player, event.getTarget());
+                if(sprintCritical){
+                    event.setResult(Event.Result.ALLOW);
+                }
             }
         }
     }
@@ -173,8 +183,10 @@ public class ForgeEventHandler {
     @SubscribeEvent
     static void onPlayerTick(TickEvent.PlayerTickEvent event){
         if(event.phase == TickEvent.Phase.END){
-            boolean supercharged = CombatUtil.isSupercharged(event.player, 0.5F);
-            CombatUtil.handleBonusReach(event.player, supercharged && !event.player.isCrouching());
+            if(MeleeCombatConfigs.getAttackSupercharge().get()){
+                boolean supercharged = CombatUtil.isSupercharged(event.player, 0.5F);
+                CombatUtil.handleBonusAttackReach(event.player, supercharged && !event.player.isCrouching());
+            }
         }
     }
 
@@ -183,14 +195,19 @@ public class ForgeEventHandler {
         CombatUtil.applySyncedConfigs();
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event){
-        Player player = event.getEntity();
-        CNNetwork.syncToPlayer((ServerPlayer) player, ClientboundConfigSyncPacket.createConfigSyncPacket());
-        CombatUtil.adjustAttributeBaseValue(player, Attributes.ATTACK_DAMAGE, ConfigUtil.getBaseAttackDamage());
-        CombatUtil.adjustAttributeBaseValue(player, Attributes.ATTACK_KNOCKBACK, ConfigUtil.getBaseAttackKnockback());
-        CombatUtil.adjustAttributeBaseValue(player, ForgeMod.ATTACK_RANGE.get(), ConfigUtil.getBaseAttackRange());
-        CombatUtil.adjustAttributeBaseValue(player, Attributes.ATTACK_SPEED, ConfigUtil.getBaseAttackSpeed());
+        ServerPlayer player = (ServerPlayer) event.getEntity();
+        CNNetwork.syncToPlayer(player, ClientboundConfigSyncPacket.createConfigSyncPacket());
+        LazyOptional<PlayerCapability> playerCap = player.getCapability(PlayerCapability.INSTANCE);
+        boolean playedBefore = playerCap.map(PlayerCapability::getPlayedBeforeAndUpdate).orElse(false);
+        CombatNext.LOGGER.info("{} Player {} detected, {}", playedBefore ? "Returning" : "New", player.getName().getString(), playedBefore ? "welcome back!" : "welcome to Combat Next!");
+        if(MeleeCombatConfigs.getPlayerAttributeChange().get()){
+            if(!playedBefore || !MeleeCombatConfigs.getPlayerAttributeChangeFirstLogin().get()){
+                CombatUtil.adjustAttributeBaseValue(player, Attributes.ATTACK_DAMAGE, CombatUtil.getBaseAttackDamage());
+                CombatUtil.adjustAttributeBaseValue(player, ForgeMod.ATTACK_RANGE.get(), CombatUtil.getBaseAttackRange());
+            }
+        }
     }
 
 }

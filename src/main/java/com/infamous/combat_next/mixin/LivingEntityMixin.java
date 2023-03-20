@@ -1,6 +1,8 @@
 package com.infamous.combat_next.mixin;
 
-import com.infamous.combat_next.config.ConfigUtil;
+import com.infamous.combat_next.config.BugFixConfigs;
+import com.infamous.combat_next.config.GeneralCombatConfigs;
+import com.infamous.combat_next.config.ShieldCombatConfigs;
 import com.infamous.combat_next.util.CombatExtensions;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
@@ -29,30 +31,34 @@ public abstract class LivingEntityMixin extends Entity implements CombatExtensio
 
     @ModifyConstant(method = "isBlocking", constant = @Constant(intValue = 5, ordinal = 0))
     int getShieldWarmUpDelay(int vanilla){
-        return 0;
+        return ShieldCombatConfigs.shieldWarmUpDelay.get();
     }
 
     @ModifyConstant(method = "isDamageSourceBlocked", constant = @Constant(doubleValue = 0.0D, ordinal = 1))
     double getMaxDotProduct(double vanilla){
-        return Mth.cos(ConfigUtil.getShieldProtectionArc() * (Mth.PI / 360.0F)) * -1.0D;
+        return Mth.cos(ShieldCombatConfigs.shieldProtectionArc.get().floatValue() * (Mth.PI / 360.0F)) * -1.0D;
     }
 
     @Inject(method = "knockback", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getDeltaMovement()Lnet/minecraft/world/phys/Vec3;"))
     private void handleKnockbackHurtMarked(double strength, double ratioX, double ratioZ, CallbackInfo ci){
-        // Fix MC-223238 and MC-248310 by setting the victim to hurtMarked
-        this.markHurt();
+        if(BugFixConfigs.fixShieldUserKnockback.get()){
+            // Fix MC-223238 and MC-248310 by setting the victim to hurtMarked
+            this.markHurt();
+        }
     }
 
-    @Inject(method = "blockedByShield", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "blockedByShield", at = @At("HEAD"), cancellable = true)
     private void fixBlockedByShield(LivingEntity defender, CallbackInfo ci){
-        ci.cancel();
-        // Fix MC-147694 by switching attacker and defender
-        this.knockback(0.5D, this.getX() - defender.getX(), this.getZ() - defender.getZ());
+        if(BugFixConfigs.fixShieldAttackerKnockback.get()){
+            ci.cancel();
+            // Fix MC-147694 by switching attacker and defender
+            this.knockback(0.5D, this.getX() - defender.getX(), this.getZ() - defender.getZ());
+        }
     }
 
     @ModifyConstant(method = "hurt", constant = @Constant(floatValue = 10.0F, ordinal = 0))
     private float getTicksLeftBeforeDamageable(float constant){
-        return 0.0F;
+        return GeneralCombatConfigs.getIFramesLeftBeforeDamageable().get();
     }
 
     @Override

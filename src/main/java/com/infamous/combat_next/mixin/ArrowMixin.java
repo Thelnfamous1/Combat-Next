@@ -1,6 +1,6 @@
 package com.infamous.combat_next.mixin;
 
-import com.infamous.combat_next.config.ConfigUtil;
+import com.infamous.combat_next.config.MagicCombatConfigs;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -23,7 +23,7 @@ public abstract class ArrowMixin extends AbstractArrow {
     @Redirect(method = "doPostHurtEffects", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;addEffect(Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z", ordinal = 0))
     private boolean handleInstantEffects(LivingEntity target, MobEffectInstance effectInstance, @Nullable Entity source){
         if(effectInstance.getEffect().isInstantenous()){
-            effectInstance.getEffect().applyInstantenousEffect(this, this.getOwner(), target, effectInstance.getAmplifier(), ConfigUtil.getArrowInstantEffectScale());
+            effectInstance.getEffect().applyInstantenousEffect(this, this.getOwner(), target, effectInstance.getAmplifier(), MagicCombatConfigs.getArrowInstantEffectScale().get());
             return true;
         } else{
             return target.addEffect(new MobEffectInstance(effectInstance.getEffect(), Math.max(effectInstance.getDuration() / 8, 1), effectInstance.getAmplifier(), effectInstance.isAmbient(), effectInstance.isVisible()), source);

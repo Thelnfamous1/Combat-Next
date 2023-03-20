@@ -1,5 +1,6 @@
 package com.infamous.combat_next.mixin;
 
+import com.infamous.combat_next.config.MeleeCombatConfigs;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,7 +19,11 @@ public abstract class AxeItemMixin extends DiggerItem {
 
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity player) {
-        stack.hurtAndBreak(1, player, (entity) -> entity.broadcastBreakEvent(EquipmentSlot.MAINHAND));
-        return true;
+        if(MeleeCombatConfigs.getAxeHitEnemyChange().get()){
+            stack.hurtAndBreak(1, player, (e) -> e.broadcastBreakEvent(EquipmentSlot.MAINHAND));
+            return true;
+        } else{
+            return super.hurtEnemy(stack, target, player);
+        }
     }
 }

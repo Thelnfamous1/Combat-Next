@@ -1,6 +1,6 @@
 package com.infamous.combat_next.mixin;
 
-import com.infamous.combat_next.config.ConfigUtil;
+import com.infamous.combat_next.config.GeneralCombatConfigs;
 import com.infamous.combat_next.data.CNTags;
 import com.infamous.combat_next.util.CombatUtil;
 import net.minecraft.tags.TagKey;
@@ -23,7 +23,7 @@ public abstract class ItemStackMixin {
     @Inject(method = "getUseDuration", at = @At("HEAD"), cancellable = true)
     private void handleGetUseDuration(CallbackInfoReturnable<Integer> cir){
         if(CombatUtil.isEatOrDrink(this.getUseAnimation()) && this.is(CNTags.FAST_DRINKS)){
-            cir.setReturnValue(ConfigUtil.getDrinkUseDurationTicks());
+            cir.setReturnValue(GeneralCombatConfigs.getDrinkUseDurationTicks().get());
         }
     }
 }

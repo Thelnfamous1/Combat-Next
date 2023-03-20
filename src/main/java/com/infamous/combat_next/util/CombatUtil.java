@@ -2,7 +2,7 @@ package com.infamous.combat_next.util;
 
 import com.infamous.combat_next.CombatNext;
 import com.infamous.combat_next.client.ClientCombatUtil;
-import com.infamous.combat_next.config.ConfigUtil;
+import com.infamous.combat_next.config.*;
 import com.infamous.combat_next.mixin.ItemAccessor;
 import com.infamous.combat_next.mixin.LivingEntityAccessor;
 import com.infamous.combat_next.mixin.ThrownTridentAccessor;
@@ -23,10 +23,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobType;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.*;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -43,6 +40,7 @@ import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.common.ToolActions;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -55,26 +53,30 @@ public class CombatUtil {
     private static final float IMPALING_DAMAGE_SCALE = 2.5F;
     private static final int SHIELD_BREAK_EVENT_ID = 30;
 
-    public static void registerTridentDispenseBehavior(){
-        DispenserBlock.registerBehavior(Items.TRIDENT, new AbstractProjectileDispenseBehavior() {
-            protected Projectile getProjectile(Level level, Position position, ItemStack stack) {
-                ThrownTrident thrownTrident = new ThrownTrident(EntityType.TRIDENT, level);
-                ((ThrownTridentAccessor)thrownTrident).setTridentItem(stack.copy());
-                thrownTrident.getEntityData().set(ThrownTridentAccessor.getID_LOYALTY(), (byte) EnchantmentHelper.getLoyalty(stack));
-                thrownTrident.getEntityData().set(ThrownTridentAccessor.getID_FOIL(), stack.hasFoil());
-                thrownTrident.setPos(position.x(), position.y(), position.z());
-                thrownTrident.pickup = AbstractArrow.Pickup.ALLOWED;
-                return thrownTrident;
-            }
-        });
-        CombatNext.LOGGER.info("Registered DispenseItemBehavior for Item {}", "minecraft:trident");
+    private static void registerTridentDispenseBehavior(){
+        if(RangedCombatConfigs.getTridentShootFromDispenser().get()){
+            DispenserBlock.registerBehavior(Items.TRIDENT, new AbstractProjectileDispenseBehavior() {
+                protected Projectile getProjectile(Level level, Position position, ItemStack stack) {
+                    ThrownTrident thrownTrident = new ThrownTrident(EntityType.TRIDENT, level);
+                    ((ThrownTridentAccessor)thrownTrident).setTridentItem(stack.copy());
+                    thrownTrident.getEntityData().set(ThrownTridentAccessor.getID_LOYALTY(), (byte) EnchantmentHelper.getLoyalty(stack));
+                    thrownTrident.getEntityData().set(ThrownTridentAccessor.getID_FOIL(), stack.hasFoil());
+                    thrownTrident.setPos(position.x(), position.y(), position.z());
+                    thrownTrident.pickup = AbstractArrow.Pickup.ALLOWED;
+                    return thrownTrident;
+                }
+            });
+            CombatNext.LOGGER.info("Registered DispenseItemBehavior for Item {}", "minecraft:trident");
+        }
     }
 
     private static void modifyStrengthEffect(){
-        MobEffects.DAMAGE_BOOST.addAttributeModifier(Attributes.ATTACK_DAMAGE, DAMAGE_BOOST_MODIFIER_UUID, ConfigUtil.getStrengthEffectModifierValue(), AttributeModifier.Operation.MULTIPLY_TOTAL);
-        CombatNext.LOGGER.info("Modified MobEffect {} to have an AttributeModifier for Attribute {} with UUID {}, value of {}, and Operation of {}",
-                "minecraft:strength", getTranslation(Attributes.ATTACK_KNOCKBACK.getDescriptionId()), DAMAGE_BOOST_MODIFIER_UUID, ConfigUtil.getStrengthEffectModifierValue(),
-                AttributeModifier.Operation.MULTIPLY_TOTAL);
+        if(MagicCombatConfigs.getStrengthEffectChange().get()){
+            MobEffects.DAMAGE_BOOST.addAttributeModifier(Attributes.ATTACK_DAMAGE, DAMAGE_BOOST_MODIFIER_UUID, MagicCombatConfigs.getStrengthEffectModifierValue().get(), AttributeModifier.Operation.MULTIPLY_TOTAL);
+            CombatNext.LOGGER.info("Modified MobEffect {} to have an AttributeModifier for Attribute {} with UUID {}, value of {}, and Operation of {}",
+                    "minecraft:strength", getTranslation(Attributes.ATTACK_KNOCKBACK.getDescriptionId()), DAMAGE_BOOST_MODIFIER_UUID, MagicCombatConfigs.getStrengthEffectModifierValue().get(),
+                    AttributeModifier.Operation.MULTIPLY_TOTAL);
+        }
     }
 
     private static String getTranslation(String descriptionId) {
@@ -82,10 +84,10 @@ public class CombatUtil {
     }
 
     private static void modifyItemMaxStackSizes(){
-        ((ItemAccessor)Items.SNOWBALL).setMaxStackSize(ConfigUtil.getSnowballMaxStackSize());
-        CombatNext.LOGGER.info("Changed max stack size of {} to {}", "minecraft:snowball", ConfigUtil.getSnowballMaxStackSize());
-        ((ItemAccessor)Items.POTION).setMaxStackSize(ConfigUtil.getPotionMaxStackSize());
-        CombatNext.LOGGER.info("Changed max stack size of {} to {}", "minecraft:potion", ConfigUtil.getPotionMaxStackSize());
+        ((ItemAccessor)Items.SNOWBALL).setMaxStackSize(RangedCombatConfigs.getSnowballMaxStackSize().get());
+        CombatNext.LOGGER.info("Changed max stack size of {} to {}", "minecraft:snowball", RangedCombatConfigs.getSnowballMaxStackSize().get());
+        ((ItemAccessor)Items.POTION).setMaxStackSize(MagicCombatConfigs.getPotionMaxStackSize().get());
+        CombatNext.LOGGER.info("Changed max stack size of {} to {}", "minecraft:potion", MagicCombatConfigs.getPotionMaxStackSize().get());
     }
 
     public static boolean isEatOrDrink(UseAnim anim){
@@ -96,16 +98,17 @@ public class CombatUtil {
         return source.getDirectEntity() instanceof LivingEntity || (source.isProjectile() && source.getEntity() instanceof LivingEntity);
     }
 
-    public static float recalculateDamageBonus(ItemStack stack, float base, Entity target){
+    public static float recalculateDamageBonus(ItemStack stack, float original, Entity target){
         int impalingLevel = stack.getEnchantmentLevel(Enchantments.IMPALING);
-        if(impalingLevel > 0){
+        float result = original;
+        if(impalingLevel > 0 && GeneralCombatConfigs.getImpalingChange().get()){
             if(target instanceof LivingEntity victim){
                 float originalBonus = Enchantments.IMPALING.getDamageBonus(impalingLevel, victim.getMobType(), stack);
-                base -= originalBonus;
+                result -= originalBonus;
             }
-            base += getImpalingDamageBonus(impalingLevel, target);
+            result += getImpalingDamageBonus(impalingLevel, target);
         }
-        return base;
+        return result;
     }
 
     public static float getImpalingDamageBonus(int level, Entity target){
@@ -114,8 +117,8 @@ public class CombatUtil {
 
     public static void newDisableShield(Player victim, LivingEntity attacker){
         int cleavingLevel = attacker.getMainHandItem().getEnchantmentLevel(EnchantmentRegistry.CLEAVING.get());
-        int cleavingTicks = ConfigUtil.getShieldDisableTicksCleaving() * cleavingLevel;
-        victim.getCooldowns().addCooldown(victim.getUseItem().getItem(), ConfigUtil.getShieldDisableTicksBase() + cleavingTicks);
+        int cleavingTicks = ShieldCombatConfigs.shieldDisableTicksCleaving.get() * cleavingLevel;
+        victim.getCooldowns().addCooldown(victim.getUseItem().getItem(), ShieldCombatConfigs.shieldDisableTicksBase.get() + cleavingTicks);
         victim.stopUsingItem();
         victim.level.broadcastEntityEvent(victim, (byte) SHIELD_BREAK_EVENT_ID);
     }
@@ -126,15 +129,15 @@ public class CombatUtil {
             CNNetwork.SYNC_CHANNEL.sendToServer(ServerboundMissPacket.createMissPacket());
         }
         if (!player.isSpectator()) {
-            sweepAttack(player);
+            if(MeleeCombatConfigs.getAttackMissSweepAttack().get()) sweepAttack(player);
             resetAttackStrengthTicker(player, true);
         }
     }
     
     public static void resetAttackStrengthTicker(Player player, boolean miss){
-        if(miss){
+        if(miss && MeleeCombatConfigs.getAttackMissReducedCooldown().get()){
             LivingEntityAccessor accessor = (LivingEntityAccessor) player;
-            accessor.setAttackStrengthTicker((int) (player.getCurrentItemAttackStrengthDelay() - ConfigUtil.getAttackMissCooldownTicks()));
+            accessor.setAttackStrengthTicker(Math.max(0, (int) (player.getCurrentItemAttackStrengthDelay() - MeleeCombatConfigs.getAttackMissCooldownTicks().get())));
         } else{
             player.resetAttackStrengthTicker();
         }
@@ -180,7 +183,8 @@ public class CombatUtil {
     }
 
     public static boolean canSweepAttack(ItemStack stack) {
-        return stack.getEnchantmentLevel(Enchantments.SWEEPING_EDGE) > 0;
+        return MeleeCombatConfigs.getSweepAttackChange().get() ?
+                stack.getEnchantmentLevel(Enchantments.SWEEPING_EDGE) > 0 : stack.canPerformAction(ToolActions.SWORD_SWEEP);
     }
 
     private static AABB getSweepHitBox(Player player, ItemStack weapon) {
@@ -191,11 +195,11 @@ public class CombatUtil {
     }
 
     public static boolean onAttackCooldown(Player player, float partialTick) {
-        return player.getAttackStrengthScale(partialTick) < 1.0F;
+        return player.getAttackStrengthScale(partialTick) < 1.0F && MeleeCombatConfigs.getAttackDuringCooldownPrevented().get();
     }
 
     public static AABB adjustBBForRayTrace(AABB boundingBox) {
-        if(boundingBox.getSize() < ConfigUtil.getHitboxMinSizeForHitscan()){
+        if(boundingBox.getSize() < GeneralCombatConfigs.getHitboxMinSizeForHitscan().get()){
             double xAdjust = adjustSize(boundingBox.getXsize());
             double yAdjust = adjustSize(boundingBox.getYsize());
             double zAdjust = adjustSize(boundingBox.getZsize());
@@ -205,7 +209,7 @@ public class CombatUtil {
     }
 
     private static double adjustSize(double size) {
-        return size < ConfigUtil.getHitboxMinSizeForHitscan() ? (ConfigUtil.getHitboxMinSizeForHitscan() - size) / 2.0D : 0.0D;
+        return size < GeneralCombatConfigs.getHitboxMinSizeForHitscan().get() ? (GeneralCombatConfigs.getHitboxMinSizeForHitscan().get() - size) / 2.0D : 0.0D;
     }
 
     public static boolean hitThroughBlock(Level level, BlockPos blockPos, Player player, Predicate<Player> hitEntity){
@@ -257,7 +261,7 @@ public class CombatUtil {
         return canSprintCrit;
     }
 
-    public static void handleBonusReach(Player player, boolean add) {
+    public static void handleBonusAttackReach(Player player, boolean add) {
         AttributeInstance entityReachInstance = player.getAttribute(ForgeMod.ATTACK_RANGE.get());
         if (entityReachInstance != null) {
             AttributeModifier bonusReachModifier = entityReachInstance.getModifier(BONUS_REACH_MODIFIER_UUID);
@@ -267,24 +271,24 @@ public class CombatUtil {
                 }
             } else if(add){
                 entityReachInstance.addTransientModifier(
-                        new AttributeModifier(BONUS_REACH_MODIFIER_UUID, BONUS_REACH_MODIFIER_NAME, ConfigUtil.getAttackBonusReachWhenSupercharged(), AttributeModifier.Operation.ADDITION));
+                        new AttributeModifier(BONUS_REACH_MODIFIER_UUID, BONUS_REACH_MODIFIER_NAME, MeleeCombatConfigs.getAttackReachBonusWhenSupercharged().get(), AttributeModifier.Operation.ADDITION));
             }
         }
     }
 
     public static boolean isSupercharged(Player player, float partialTick) {
-        return getSuperchargedAttackStrengthScale(player, partialTick) >= ConfigUtil.getAttackStrengthScaleSuperchargeThreshold();
+        return getSuperchargedAttackStrengthScale(player, partialTick) >= MeleeCombatConfigs.getAttackStrengthScaleSuperchargeThreshold().get().floatValue();
     }
 
     private static float getSuperchargedAttackStrengthScale(Player player, float partialTick) {
-        return Mth.clamp(((float) ((LivingEntityAccessor) player).getAttackStrengthTicker() + partialTick) / player.getCurrentItemAttackStrengthDelay(), 0.0F, ConfigUtil.getAttackStrengthScaleSuperchargeThreshold());
+        return Mth.clamp(((float) ((LivingEntityAccessor) player).getAttackStrengthTicker() + partialTick) / player.getCurrentItemAttackStrengthDelay(), 0.0F, MeleeCombatConfigs.getAttackStrengthScaleSuperchargeThreshold().get().floatValue());
     }
 
     public static float scaleDamageBonus(LivingEntity player, float base) {
         AttributeInstance attributeInstance = player.getAttribute(Attributes.ATTACK_DAMAGE);
         float result = base;
 
-        if(attributeInstance != null){
+        if(attributeInstance != null && MeleeCombatConfigs.getEnchantmentDamageScalesWithModifiers().get()){
             for(AttributeModifier mod : attributeInstance.getModifiers(AttributeModifier.Operation.MULTIPLY_BASE)) {
                 result += base * mod.getAmount();
             }
@@ -299,6 +303,7 @@ public class CombatUtil {
     public static void applySyncedConfigs() {
         modifyStrengthEffect();
         modifyItemMaxStackSizes();
+        registerTridentDispenseBehavior();
     }
 
     public static void adjustAttributeBaseValue(Player player, Attribute attribute, double newBaseValue) {
@@ -315,5 +320,21 @@ public class CombatUtil {
     public static void setAttributeSyncable(Attribute attribute) {
         attribute.setSyncable(true);
         CombatNext.LOGGER.info("Set Attribute {} to client syncable", getTranslation(attribute.getDescriptionId()));
+    }
+
+    public static double getDefaultAttributeBaseValue(Attribute attribute) {
+        return DefaultAttributes.getSupplier(EntityType.PLAYER).getBaseValue(attribute);
+    }
+
+    public static double getBaseAttackRange() {
+        double attackRange = getDefaultAttributeBaseValue(ForgeMod.ATTACK_RANGE.get());
+        attackRange = MeleeCombatConfigs.getPlayerAttackReachBaseChange().get() ? attackRange - 0.5D : attackRange;
+        return attackRange;
+    }
+
+    public static double getBaseAttackDamage() {
+        double attackDamage = getDefaultAttributeBaseValue(Attributes.ATTACK_DAMAGE);
+        attackDamage = MeleeCombatConfigs.getPlayerAttackDamageBaseChange().get() ? attackDamage + 1.0D : attackDamage;
+        return attackDamage;
     }
 }

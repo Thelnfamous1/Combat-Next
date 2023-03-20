@@ -1,5 +1,6 @@
 package com.infamous.combat_next.mixin;
 
+import com.infamous.combat_next.config.MeleeCombatConfigs;
 import com.infamous.combat_next.util.CombatUtil;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -54,7 +55,9 @@ public abstract class PlayerMixin extends LivingEntity{
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;resetAttackStrengthTicker()V"))
     private void dontResetTickerIfWeaponSwapped(Player instance){
-
+        if(!MeleeCombatConfigs.getAttackCooldownWhenSwitchingPrevented().get()){
+            instance.resetAttackStrengthTicker();
+        }
     }
 
     @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 2), ordinal = 1)
@@ -72,7 +75,7 @@ public abstract class PlayerMixin extends LivingEntity{
 
     @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 3), ordinal = 0)
     private float addCritDamageBonus(float original){
-        if(this.criticalHitEvent != null){
+        if(this.criticalHitEvent != null && MeleeCombatConfigs.getEnchantmentDamageScalesWithCriticalHits().get()){
             original += ((this.criticalHitEvent.getDamageModifier() - 1.0F) * this.currentDamageBonus);
         }
         return original;

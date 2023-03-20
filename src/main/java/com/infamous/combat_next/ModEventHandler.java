@@ -14,9 +14,7 @@ public class ModEventHandler {
     static void onCommonSetup(FMLCommonSetupEvent event){
         event.enqueueWork(() -> {
             CNNetwork.register();
-            CombatUtil.registerTridentDispenseBehavior();
             CombatUtil.setAttributeSyncable(Attributes.ATTACK_DAMAGE);
-            CombatUtil.setAttributeSyncable(Attributes.ATTACK_KNOCKBACK);
         });
     }
 

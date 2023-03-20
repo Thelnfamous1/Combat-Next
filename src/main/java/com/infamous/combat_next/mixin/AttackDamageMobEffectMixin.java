@@ -1,5 +1,6 @@
 package com.infamous.combat_next.mixin;
 
+import com.infamous.combat_next.config.MagicCombatConfigs;
 import net.minecraft.world.effect.AttackDamageMobEffect;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
@@ -19,7 +20,7 @@ public abstract class AttackDamageMobEffectMixin extends MobEffect {
 
     @Inject(method = "getAttributeModifierValue", at = @At("HEAD"), cancellable = true)
     private void handleGetAttributeModifierValue(int level, AttributeModifier modifier, CallbackInfoReturnable<Double> cir){
-        if(this == MobEffects.DAMAGE_BOOST){
+        if(this == MobEffects.DAMAGE_BOOST && MagicCombatConfigs.getStrengthEffectChange().get()){
             cir.setReturnValue(super.getAttributeModifierValue(level, modifier));
         }
     }

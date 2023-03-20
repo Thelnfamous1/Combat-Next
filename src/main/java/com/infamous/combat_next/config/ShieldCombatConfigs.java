@@ -1,0 +1,68 @@
+package com.infamous.combat_next.config;
+
+import net.minecraftforge.common.ForgeConfigSpec;
+
+public class ShieldCombatConfigs {
+    public static ForgeConfigSpec.DoubleValue shieldKnockbackScale;
+    public static ForgeConfigSpec.DoubleValue shieldMaxBlockedDamage;
+    public static ForgeConfigSpec.DoubleValue shieldProtectionArc;
+    public static ForgeConfigSpec.BooleanValue shieldDisableChange;
+    public static ForgeConfigSpec.IntValue shieldDisableTicksBase;
+    public static ForgeConfigSpec.IntValue shieldDisableTicksCleaving;
+    public static ForgeConfigSpec.IntValue shieldWarmUpDelay;
+    public static ForgeConfigSpec.BooleanValue shieldReduceDamageBlocked;
+
+    static void createConfigs(ForgeConfigSpec.Builder builder) {
+        CNConfig.createConfigCategory(builder, " This category holds configs that affect shield combat.", "Shield Combat Config Options", b -> {
+            shieldKnockbackScale = b
+                    .comment("""
+                            Adjusts how much received knockback is scaled by when blocking with the vanilla shield.
+                            For vanilla,this value is 1.0.
+                            """)
+                    .defineInRange("shield_knockback_scale", 0.5F, 0.0F, 1.0F);
+            shieldMaxBlockedDamage = b
+                    .comment("""
+                            Adjusts the maximum damage (in half-hearts) a vanilla shield will absorb when blocking.
+                            Note: The "shield_reduce_damage_blocked" config value must be set to true.
+                            """)
+                    .defineInRange("shield_max_blocked_damage", 5.0F, 0.0F, 1024.0F);
+            shieldProtectionArc = b
+                    .comment("""
+                            Adjusts the arc of protection, in degrees, given when blocking with the vanilla shield.
+                            For vanilla, this value is 180.0.
+                            """)
+                    .defineInRange("shield_protection_arc", 100.0F, 0.0F, 180.0F);
+            shieldReduceDamageBlocked = b
+                    .comment("""
+                            Toggles the vanilla shield no longer blocking all non-projectile and non-explosive damage.
+                            Instead, it will block, at most, the "shield_max_blocked_damage" config value.
+                            For vanilla, this value is false.
+                            """)
+                    .define("shield_reduce_damage_blocked", true);
+            shieldDisableChange = b
+                    .comment("""
+                            Toggles the vanilla shield disable logic being changed to utilize the Cleaving enchantment.
+                            For vanilla, this value is false.
+                            """)
+                    .define("shield_disable_change", true);
+            shieldDisableTicksBase = b
+                    .comment("""
+                            Adjusts the base amount of ticks (1/20 seconds) a shield is disabled for.
+                            Note: The "shield_disable_change" config value must be set to true.
+                            """)
+                    .defineInRange("shield_disable_ticks_base", 32, 0, 600);
+            shieldDisableTicksCleaving = b
+                    .comment("""
+                            Adjusts the additional amount of ticks (1/20 seconds) a shield is disabled for when hit by an axe, per level of Cleaving.
+                            Note: The "shield_disable_change" config value must be set to true.
+                            """)
+                    .defineInRange("shield_disable_ticks_cleaving", 10, 0, 20);
+            shieldWarmUpDelay = b
+                    .comment("""
+                            Adjusts the amount of ticks (1/20 seconds) the shield must be active before being able to block attacks.
+                            For vanilla, this value is 5.
+                            """)
+                    .defineInRange("shield_warmup_delay", 0, 0, 200);
+        });
+    }
+}
