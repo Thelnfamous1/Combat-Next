@@ -71,9 +71,9 @@ public class ForgeEventHandler {
             DamageSource source = event.getDamageSource();
             CombatExtensions.cast(user).setLastBlockedDamageSource(source);
 
-            if(stack.is(Items.SHIELD) && ShieldCombatConfigs.shieldReduceDamageBlocked.get()){
+            if(stack.is(Items.SHIELD) && ShieldCombatConfigs.getShieldReduceDamageBlocked().get()){
                 if(!source.isProjectile() && !source.isExplosion()){
-                    event.setBlockedDamage(Math.min(ShieldCombatConfigs.shieldMaxBlockedDamage.get().floatValue(), amount));
+                    event.setBlockedDamage(Math.min(ShieldCombatConfigs.getShieldMaxBlockedDamage().get().floatValue(), amount));
                 }
             }
         }
@@ -134,7 +134,7 @@ public class ForgeEventHandler {
             LivingEntity victim = event.getEntity();
             DamageSource lastBlockedDamageSource = CombatExtensions.cast(victim).getLastBlockedDamageSource();
             if(lastBlockedDamageSource != null && victim.isDamageSourceBlocked(lastBlockedDamageSource)){
-                event.setStrength(event.getStrength() * ShieldCombatConfigs.shieldKnockbackScale.get().floatValue());
+                event.setStrength(event.getStrength() * ShieldCombatConfigs.getShieldKnockbackScale().get().floatValue());
             }
         }
     }

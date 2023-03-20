@@ -117,8 +117,8 @@ public class CombatUtil {
 
     public static void newDisableShield(Player victim, LivingEntity attacker){
         int cleavingLevel = attacker.getMainHandItem().getEnchantmentLevel(EnchantmentRegistry.CLEAVING.get());
-        int cleavingTicks = ShieldCombatConfigs.shieldDisableTicksCleaving.get() * cleavingLevel;
-        victim.getCooldowns().addCooldown(victim.getUseItem().getItem(), ShieldCombatConfigs.shieldDisableTicksBase.get() + cleavingTicks);
+        int cleavingTicks = ShieldCombatConfigs.getShieldDisableTicksCleaving().get() * cleavingLevel;
+        victim.getCooldowns().addCooldown(victim.getUseItem().getItem(), ShieldCombatConfigs.getShieldDisableTicksBase().get() + cleavingTicks);
         victim.stopUsingItem();
         victim.level.broadcastEntityEvent(victim, (byte) SHIELD_BREAK_EVENT_ID);
     }

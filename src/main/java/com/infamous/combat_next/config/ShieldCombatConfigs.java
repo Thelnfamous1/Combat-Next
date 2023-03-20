@@ -3,14 +3,15 @@ package com.infamous.combat_next.config;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 public class ShieldCombatConfigs {
-    public static ForgeConfigSpec.DoubleValue shieldKnockbackScale;
-    public static ForgeConfigSpec.DoubleValue shieldMaxBlockedDamage;
-    public static ForgeConfigSpec.DoubleValue shieldProtectionArc;
-    public static ForgeConfigSpec.BooleanValue shieldDisableChange;
-    public static ForgeConfigSpec.IntValue shieldDisableTicksBase;
-    public static ForgeConfigSpec.IntValue shieldDisableTicksCleaving;
-    public static ForgeConfigSpec.IntValue shieldWarmUpDelay;
-    public static ForgeConfigSpec.BooleanValue shieldReduceDamageBlocked;
+    private static ForgeConfigSpec.DoubleValue shieldKnockbackScale;
+    private static ForgeConfigSpec.DoubleValue shieldMaxBlockedDamage;
+    private static ForgeConfigSpec.DoubleValue shieldProtectionArc;
+    private static ForgeConfigSpec.BooleanValue shieldDisableChange;
+    private static ForgeConfigSpec.IntValue shieldDisableTicksBase;
+    private static ForgeConfigSpec.IntValue shieldDisableTicksCleaving;
+    private static ForgeConfigSpec.IntValue shieldWarmUpDelay;
+    private static ForgeConfigSpec.BooleanValue shieldReduceDamageBlocked;
+    private static ForgeConfigSpec.BooleanValue shieldGoatRamFullKnockback;
 
     static void createConfigs(ForgeConfigSpec.Builder builder) {
         CNConfig.createConfigCategory(builder, " This category holds configs that affect shield combat.", "Shield Combat Config Options", b -> {
@@ -32,6 +33,13 @@ public class ShieldCombatConfigs {
                             For vanilla, this value is 180.0.
                             """)
                     .defineInRange("shield_protection_arc", 100.0F, 0.0F, 180.0F);
+            shieldGoatRamFullKnockback = b
+                    .comment("""
+                            Toggles ramming Goats applying full knockback to a target, regardless of whether or not they are shielded.
+                            Note: If false, Goat ram knockback is reduced by 50% if shielded, and stacks with the "shield_knockback_scale" config value.
+                            For vanilla, this value is false.
+                            """)
+                    .define("shield_goat_ram_full_knockback", true);
             shieldReduceDamageBlocked = b
                     .comment("""
                             Toggles the vanilla shield no longer blocking all non-projectile and non-explosive damage.
@@ -64,5 +72,41 @@ public class ShieldCombatConfigs {
                             """)
                     .defineInRange("shield_warmup_delay", 0, 0, 200);
         });
+    }
+
+    public static ForgeConfigSpec.BooleanValue getShieldGoatRamFullKnockback() {
+        return shieldGoatRamFullKnockback;
+    }
+
+    public static ForgeConfigSpec.DoubleValue getShieldKnockbackScale() {
+        return shieldKnockbackScale;
+    }
+
+    public static ForgeConfigSpec.DoubleValue getShieldMaxBlockedDamage() {
+        return shieldMaxBlockedDamage;
+    }
+
+    public static ForgeConfigSpec.DoubleValue getShieldProtectionArc() {
+        return shieldProtectionArc;
+    }
+
+    public static ForgeConfigSpec.IntValue getShieldDisableTicksCleaving() {
+        return shieldDisableTicksCleaving;
+    }
+
+    public static ForgeConfigSpec.IntValue getShieldWarmUpDelay() {
+        return shieldWarmUpDelay;
+    }
+
+    public static ForgeConfigSpec.BooleanValue getShieldReduceDamageBlocked() {
+        return shieldReduceDamageBlocked;
+    }
+
+    public static ForgeConfigSpec.BooleanValue getShieldDisableChange() {
+        return shieldDisableChange;
+    }
+
+    public static ForgeConfigSpec.IntValue getShieldDisableTicksBase() {
+        return shieldDisableTicksBase;
     }
 }

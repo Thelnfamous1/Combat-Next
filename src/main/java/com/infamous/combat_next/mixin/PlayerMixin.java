@@ -1,6 +1,7 @@
 package com.infamous.combat_next.mixin;
 
 import com.infamous.combat_next.config.MeleeCombatConfigs;
+import com.infamous.combat_next.config.ShieldCombatConfigs;
 import com.infamous.combat_next.util.CombatUtil;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -28,8 +29,10 @@ public abstract class PlayerMixin extends LivingEntity{
 
     @Inject(method = "blockUsingShield", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;disableShield(Z)V"), cancellable = true)
     private void handleDisableShield(LivingEntity attacker, CallbackInfo ci){
-        ci.cancel();
-        CombatUtil.newDisableShield((Player) (Object)this, attacker);
+        if(ShieldCombatConfigs.getShieldDisableChange().get()){
+            ci.cancel();
+            CombatUtil.newDisableShield((Player) (Object)this, attacker);
+        }
     }
 
     @ModifyConstant(method = "hurt", constant = @Constant(floatValue = 0.0F, ordinal = 1))

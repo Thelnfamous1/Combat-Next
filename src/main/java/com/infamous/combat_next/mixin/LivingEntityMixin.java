@@ -31,12 +31,12 @@ public abstract class LivingEntityMixin extends Entity implements CombatExtensio
 
     @ModifyConstant(method = "isBlocking", constant = @Constant(intValue = 5, ordinal = 0))
     int getShieldWarmUpDelay(int vanilla){
-        return ShieldCombatConfigs.shieldWarmUpDelay.get();
+        return ShieldCombatConfigs.getShieldWarmUpDelay().get();
     }
 
     @ModifyConstant(method = "isDamageSourceBlocked", constant = @Constant(doubleValue = 0.0D, ordinal = 1))
     double getMaxDotProduct(double vanilla){
-        return Mth.cos(ShieldCombatConfigs.shieldProtectionArc.get().floatValue() * (Mth.PI / 360.0F)) * -1.0D;
+        return Mth.cos(ShieldCombatConfigs.getShieldProtectionArc().get().floatValue() * (Mth.PI / 360.0F)) * -1.0D;
     }
 
     @Inject(method = "knockback", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getDeltaMovement()Lnet/minecraft/world/phys/Vec3;"))
