@@ -25,7 +25,7 @@ public abstract class BowItemMixin {
         }
     }
 
-    @ModifyVariable(method = "releaseUsing", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/AbstractArrow;setCritArrow(Z)V"))
+    @ModifyVariable(method = "releaseUsing", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/AbstractArrow;setCritArrow(Z)V", shift = At.Shift.AFTER))
     private AbstractArrow modifyArrowCrit(AbstractArrow arrow, ItemStack stack, Level level, LivingEntity livingEntity, int useItemRemainingTicks){
         if(RangedCombatConfigs.getBowOverdrawing().get()){
             int useTicks = this.getUseDuration(stack) - useItemRemainingTicks;
