@@ -9,7 +9,7 @@ public class MagicCombatConfigs {
     private static ForgeConfigSpec.DoubleValue strengthEffectModifierValue;
     private static ForgeConfigSpec.BooleanValue strengthEffectChange;
 
-    static void createConfigs(ForgeConfigSpec.Builder builder) {
+    static void createServerConfigs(ForgeConfigSpec.Builder builder) {
         CNConfig.createConfigCategory(builder, " This category holds configs that affect magic combat.", "Magic Combat Config Options", b -> {
             arrowInstantEffectScale = b
                     .comment("""

@@ -34,7 +34,7 @@ public abstract class MinecraftMixin implements MinecraftCombat {
     @Inject(method = "continueAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;stopDestroyBlock()V"), cancellable = true)
     private void handleContinueAttack(boolean started, CallbackInfo ci){
         //noinspection ConstantConditions
-        if (started && !CombatUtil.onAttackCooldown(this.player, -1.0F) && MeleeCombatConfigs.getAttackWhenKeyHeld().get() && this.leftClickDelay == 0) {
+        if (started && !CombatUtil.onAttackCooldown(this.player, -1.0F) && MeleeCombatConfigs.getAttackWhenKeyHeld().get() && this.noLeftClickDelay()) {
             ci.cancel();
             this.startAttack();
         }
@@ -54,4 +54,5 @@ public abstract class MinecraftMixin implements MinecraftCombat {
     public void setLeftClickDelay(int leftClickDelay) {
         this.leftClickDelay = leftClickDelay;
     }
+
 }

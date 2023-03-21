@@ -26,5 +26,7 @@ public class CNItemTagsProvider extends ItemTagsProvider {
         this.tag(CNTags.SLOW_THROWABLES)
                 .add(Items.EGG)
                 .add(Items.SNOWBALL);
+        this.tag(CNTags.SHIELDS)
+                .add(Items.SHIELD);
     }
 }

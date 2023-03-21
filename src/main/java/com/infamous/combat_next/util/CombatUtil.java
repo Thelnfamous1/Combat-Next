@@ -38,7 +38,9 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.*;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.ToolActions;
 
@@ -336,5 +338,21 @@ public class CombatUtil {
         double attackDamage = getDefaultAttributeBaseValue(Attributes.ATTACK_DAMAGE);
         attackDamage = MeleeCombatConfigs.getPlayerAttackDamageBaseChange().get() ? attackDamage + 1.0D : attackDamage;
         return attackDamage;
+    }
+
+    public static boolean isUsingOffhandShield(Player player){
+        return player.getUsedItemHand() == InteractionHand.OFF_HAND && isShield(player.getUseItem());
+    }
+
+    public static boolean isShield(ItemStack stack) {
+        return stack.canPerformAction(ToolActions.SHIELD_BLOCK);
+    }
+
+    public static boolean hasOffhandShield(Player player){
+        return isShield(player.getItemInHand(InteractionHand.OFF_HAND));
+    }
+
+    public static boolean canShieldOnCrouch(Player player){
+        return player.isOnGround();
     }
 }

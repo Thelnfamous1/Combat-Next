@@ -27,7 +27,7 @@ public class MeleeCombatConfigs {
     private static ForgeConfigSpec.BooleanValue playerAttributeChange;
     private static ForgeConfigSpec.BooleanValue playerAttributeChangeFirstLogin;
 
-    static void createConfigs(ForgeConfigSpec.Builder builder) {
+    static void createServerConfigs(ForgeConfigSpec.Builder builder) {
         CNConfig.createConfigCategory(builder, " This category holds configs that affect melee combat.", "Melee Combat Config Options", b -> {
             attackCooldownWhenSwitchingPrevented = b
                     .comment("""

@@ -17,10 +17,8 @@ public class ForgeClientEventHandler {
     @SubscribeEvent
     static void onPreClientTick(TickEvent.ClientTickEvent event){
         if(event.phase == TickEvent.Phase.START){
-            int leftClickDelay = MinecraftCombat.cast(Minecraft.getInstance()).getLeftClickDelay();
-            if(leftClickDelay > 0){
-                MinecraftCombat.cast(Minecraft.getInstance()).setLeftClickDelay(leftClickDelay - 1);
-            }
+            MinecraftCombat.cast(Minecraft.getInstance()).updateLeftClickDelay();
+            ClientCombatUtil.handleShiftKeyDown();
         }
     }
 

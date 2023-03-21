@@ -9,7 +9,7 @@ public class HungerConfigs {
     private static ForgeConfigSpec.BooleanValue naturalHealingExhaustionPrevented;
     private static ForgeConfigSpec.BooleanValue naturalHealingFastHealingPrevented;
 
-    static void createConfigs(ForgeConfigSpec.Builder builder) {
+    static void createServerConfigs(ForgeConfigSpec.Builder builder) {
         CNConfig.createConfigCategory(builder, " This category holds configs that affect hunger.", "Hunger Config Options", b -> {
             naturalHealingExhaustionPrevented = b
                     .comment("""

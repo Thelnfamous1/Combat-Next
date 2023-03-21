@@ -33,7 +33,7 @@ public class CombatNext
         FileUtils.getOrCreateDirectory(FMLPaths.CONFIGDIR.get().resolve(MODID), MODID);
         ModLoadingContext modLoadingContext = ModLoadingContext.get();
         //modLoadingContext.registerConfig(ModConfig.Type.COMMON, CNConfig.COMMON_SPEC, String.format("%s/%s.toml", MODID, "common"));
-        //modLoadingContext.registerConfig(ModConfig.Type.CLIENT, CNConfig.CLIENT_SPEC, String.format("%s/%s.toml", MODID, "client"));
+        modLoadingContext.registerConfig(ModConfig.Type.CLIENT, CNConfig.CLIENT_SPEC, String.format("%s/%s.toml", MODID, "client"));
         modLoadingContext.registerConfig(ModConfig.Type.SERVER, CNConfig.SERVER_SPEC, String.format("%s.toml", MODID));
     }
 }

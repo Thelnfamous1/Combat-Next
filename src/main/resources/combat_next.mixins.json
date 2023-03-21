@@ -25,7 +25,8 @@
   "client": [
     "ItemInHandRendererMixin",
     "MinecraftMixin",
-    "MultiPlayerGameModeAccessor"
+    "MultiPlayerGameModeAccessor",
+    "MultiPlayerGameModeMixin"
   ],
   "injectors": {
     "defaultRequire": 1

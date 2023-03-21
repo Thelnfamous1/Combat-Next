@@ -8,7 +8,19 @@ public interface MinecraftCombat {
         return (MinecraftCombat) minecraft;
     }
 
+    default boolean noLeftClickDelay(){
+        return this.getLeftClickDelay() == 0;
+    }
+
+    default void updateLeftClickDelay(){
+        int leftClickDelay = this.getLeftClickDelay();
+        if(leftClickDelay > 0){
+            this.setLeftClickDelay(leftClickDelay - 1);
+        }
+    }
+
     int getLeftClickDelay();
 
     void setLeftClickDelay(int leftClickDelay);
+
 }

@@ -10,7 +10,7 @@ public class GeneralCombatConfigs {
     private static ForgeConfigSpec.IntValue iFramesLeftBeforeDamageable;
     private static ForgeConfigSpec.BooleanValue playersAlwaysHurt;
 
-    static void createConfigs(ForgeConfigSpec.Builder builder) {
+    static void createServerConfigs(ForgeConfigSpec.Builder builder) {
         CNConfig.createConfigCategory(builder, " This category holds configs that affect general combat.", "General Combat Config Options", b -> {
             attacksInterruptConsumption = b
                     .comment("""

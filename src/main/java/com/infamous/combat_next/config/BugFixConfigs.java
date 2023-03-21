@@ -6,8 +6,8 @@ public class BugFixConfigs {
     public static ForgeConfigSpec.BooleanValue fixShieldAttackerKnockback;
     public static ForgeConfigSpec.BooleanValue fixShieldUserKnockback;
 
-    static void createConfigs(ForgeConfigSpec.Builder builder) {
-        CNConfig.createConfigCategory(builder, " This category holds configs that affect bug fixes,", "Bug Fix Config Options", b -> {
+    static void createServerConfigs(ForgeConfigSpec.Builder builder) {
+        CNConfig.createConfigCategory(builder, " This category holds configs that affect bug fixes.", "Bug Fix Config Options", b -> {
             fixShieldAttackerKnockback = b
                     .comment("""
                             Fix MC-147694 (shield not knocking back attackers).

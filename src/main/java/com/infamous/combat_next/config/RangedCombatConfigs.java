@@ -12,7 +12,7 @@ public class RangedCombatConfigs {
     private static ForgeConfigSpec.BooleanValue tridentShootFromDispenser;
     private static ForgeConfigSpec.IntValue throwableItemCooldown;
 
-    static void createConfigs(ForgeConfigSpec.Builder builder) {
+    static void createServerConfigs(ForgeConfigSpec.Builder builder) {
         CNConfig.createConfigCategory(builder, " This category holds configs that affect ranged combat.", "Ranged Combat Config Options", b -> {
             bowOverdrawing = b
                     .comment("""

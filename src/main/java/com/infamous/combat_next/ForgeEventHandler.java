@@ -71,7 +71,7 @@ public class ForgeEventHandler {
             DamageSource source = event.getDamageSource();
             CombatExtensions.cast(user).setLastBlockedDamageSource(source);
 
-            if(stack.is(Items.SHIELD) && ShieldCombatConfigs.getShieldReduceDamageBlocked().get()){
+            if(CombatUtil.isShield(stack) && ShieldCombatConfigs.getShieldReduceDamageBlocked().get()){
                 if(!source.isProjectile() && !source.isExplosion()){
                     event.setBlockedDamage(Math.min(ShieldCombatConfigs.getShieldMaxBlockedDamage().get().floatValue(), amount));
                 }

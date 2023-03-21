@@ -6,24 +6,27 @@ import java.util.function.Consumer;
 
 public class CNConfig {
     //public static final ForgeConfigSpec COMMON_SPEC;
-    //public static final ForgeConfigSpec CLIENT_SPEC;
+    public static final ForgeConfigSpec CLIENT_SPEC;
     public static final ForgeConfigSpec SERVER_SPEC;
 
     static {
         //COMMON_SPEC = createConfig(CNConfig::setupCommonConfig);
-        //CLIENT_SPEC = createConfig(CNConfig::setupClientConfig);
+        CLIENT_SPEC = createConfig(CNConfig::setupClientConfig);
         SERVER_SPEC = createConfig(CNConfig::setupServerConfig);
     }
 
+    private static void setupClientConfig(ForgeConfigSpec.Builder builder) {
+        ShieldCombatConfigs.createClientConfigs(builder);
+    }
 
     private static void setupServerConfig(ForgeConfigSpec.Builder builder) {
-        BugFixConfigs.createConfigs(builder);
-        GeneralCombatConfigs.createConfigs(builder);
-        HungerConfigs.createConfigs(builder);
-        MagicCombatConfigs.createConfigs(builder);
-        MeleeCombatConfigs.createConfigs(builder);
-        RangedCombatConfigs.createConfigs(builder);
-        ShieldCombatConfigs.createConfigs(builder);
+        BugFixConfigs.createServerConfigs(builder);
+        GeneralCombatConfigs.createServerConfigs(builder);
+        HungerConfigs.createServerConfigs(builder);
+        MagicCombatConfigs.createServerConfigs(builder);
+        MeleeCombatConfigs.createServerConfigs(builder);
+        RangedCombatConfigs.createServerConfigs(builder);
+        ShieldCombatConfigs.createServerConfigs(builder);
     }
 
     private static ForgeConfigSpec createConfig(Consumer<ForgeConfigSpec.Builder> setup) {
