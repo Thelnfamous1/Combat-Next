@@ -13,6 +13,12 @@ public class ShieldCombatConfigs {
     private static ForgeConfigSpec.BooleanValue shieldReduceDamageBlocked;
     private static ForgeConfigSpec.BooleanValue shieldGoatRamFullKnockback;
     private static ForgeConfigSpec.BooleanValue shieldCrouch;
+    private static ForgeConfigSpec.IntValue shieldIndicatorStatus;
+    private static ForgeConfigSpec.IntValue shieldIndicatorCrosshairOffsetX;
+    private static ForgeConfigSpec.IntValue shieldIndicatorCrosshairOffsetY;
+    private static ForgeConfigSpec.IntValue shieldIndicatorHotbarRightOffsetX;
+    private static ForgeConfigSpec.IntValue shieldIndicatorHotbarLeftOffsetX;
+    private static ForgeConfigSpec.IntValue shieldIndicatorHotbarOffsetY;
 
     static void createServerConfigs(ForgeConfigSpec.Builder builder) {
         CNConfig.createConfigCategory(builder, " This category holds configs that affect shield combat.", "Shield Combat Config Options", b -> {
@@ -84,6 +90,55 @@ public class ShieldCombatConfigs {
                             For vanilla, this value is false.
                             """)
                     .define("shield_crouch", true);
+            shieldIndicatorStatus = b
+                    .comment("""
+                            Adjusts the status of the Shield Indicator.
+                            A value of 0 means the Shield Indicator will be turned off.
+                            A value of 1 means the Shield Indicator will render with the Crosshair.
+                            A value of 2 means the Shield Indicator will render with the Hotbar.
+                            For vanilla, this value is 0.
+                            """)
+                    .defineInRange("shield_indicator_status", 1, 0, 2);
+            shieldIndicatorCrosshairOffsetX = b
+                    .comment("""
+                            Adjusts the vertical offset of the Crosshair Shield Indicator, in pixels.
+                            This will be subtracted from 1/2 of the screen's width.
+                            Higher values will move the Crosshair Shield Indicator left on the screen.
+                            For vanilla, this value is 8 (1/2 the Crosshair Shield Indicator's texture width of 16).
+                            """)
+                    .defineInRange("shield_indicator_crosshair_offset_x", 8, -8000, 8000);
+            shieldIndicatorCrosshairOffsetY = b
+                    .comment("""
+                            Adjusts the vertical offset of the Crosshair Shield Indicator, in pixels.
+                            This will be added to 1/2 of the screen's height.
+                            Higher values will move the Crosshair Shield Indicator down on the screen.
+                            For vanilla, this value is 9 (The Crosshair Shield Indicator's texture height of 16 - 1/2 the Crosshair's texture height of 15).
+                            """)
+                    .defineInRange("shield_indicator_crosshair_offset_y", 9, -8000, 8000);
+            shieldIndicatorHotbarRightOffsetX = b
+                    .comment("""
+                            Adjusts the horizontal offset of the Hotbar Shield Indicator when the Main Hand is Right, in pixels.
+                            This will be added to 1/2 of the screen's width.
+                            Higher values will move the Hotbar Shield Indicator right on the screen.
+                            For vanilla, this value is 115 (1/2 the Hotbar's texture width of 192 + 1/2 the Hotbar Attack Indicator's texture width of 18 + 6).
+                            """)
+                    .defineInRange("shield_indicator_hotbar_right_offset_x", 115, -8000, 8000);
+            shieldIndicatorHotbarLeftOffsetX = b
+                    .comment("""
+                            Adjusts the horizontal offset of the Hotbar Shield Indicator when the Main Hand is Left, in pixels.
+                            This will be subtracted from 1/2 of the screen's width.
+                            Higher values will move the Hotbar Shield Indicator left on the screen.
+                            For vanilla, this value is 131 (1/2 the Hotbar's texture width of 192 + 1/2 the Hotbar Attack Indicator's texture width of 18 + 22).
+                            """)
+                    .defineInRange("shield_indicator_hotbar_left_offset_x", 131, -8000, 8000);
+            shieldIndicatorHotbarOffsetY = b
+                    .comment("""
+                            Adjusts the vertical offset of the Hotbar Shield Indicator, in pixels.
+                            This will be subtracted from the screen's height.
+                            Higher values will move the Hotbar Shield Indicator up on the screen.
+                            For vanilla, this value is 20 (The Hotbar Shield Indicator's texture width of 18 + 2).
+                            """)
+                    .defineInRange("shield_indicator_hotbar_offset_y", 20, 20, 8000);
         });
     }
 
@@ -125,5 +180,29 @@ public class ShieldCombatConfigs {
 
     public static ForgeConfigSpec.BooleanValue getShieldCrouch() {
         return shieldCrouch;
+    }
+
+    public static ForgeConfigSpec.IntValue getShieldIndicatorStatus() {
+        return shieldIndicatorStatus;
+    }
+
+    public static ForgeConfigSpec.IntValue getShieldIndicatorCrosshairOffsetX() {
+        return shieldIndicatorCrosshairOffsetX;
+    }
+
+    public static ForgeConfigSpec.IntValue getShieldIndicatorCrosshairOffsetY() {
+        return shieldIndicatorCrosshairOffsetY;
+    }
+
+    public static ForgeConfigSpec.IntValue getShieldIndicatorHotbarRightOffsetX() {
+        return shieldIndicatorHotbarRightOffsetX;
+    }
+
+    public static ForgeConfigSpec.IntValue getShieldIndicatorHotbarLeftOffsetX() {
+        return shieldIndicatorHotbarLeftOffsetX;
+    }
+
+    public static ForgeConfigSpec.IntValue getShieldIndicatorHotbarOffsetY() {
+        return shieldIndicatorHotbarOffsetY;
     }
 }

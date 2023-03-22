@@ -355,4 +355,8 @@ public class CombatUtil {
     public static boolean canShieldOnCrouch(Player player){
         return player.isOnGround();
     }
+
+    public static InteractionHand getShieldHoldingHand(LivingEntity livingEntity) {
+        return CombatUtil.isShield(livingEntity.getOffhandItem()) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
+    }
 }
