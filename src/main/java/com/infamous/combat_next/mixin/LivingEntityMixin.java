@@ -1,5 +1,6 @@
 package com.infamous.combat_next.mixin;
 
+import com.infamous.combat_next.config.ShieldCombatValues;
 import com.infamous.combat_next.config.BugFixConfigs;
 import com.infamous.combat_next.config.GeneralCombatConfigs;
 import com.infamous.combat_next.config.ShieldCombatConfigs;
@@ -9,6 +10,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -18,12 +20,16 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Optional;
+
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity implements CombatExtensions {
     private DamageSource lastBlockedDamageSource;
     private long lastBlockedDamageStamp;
 
     @Shadow public abstract void knockback(double p_147241_, double p_147242_, double p_147243_);
+
+    @Shadow public abstract ItemStack getUseItem();
 
     public LivingEntityMixin(EntityType<?> type, Level level) {
         super(type, level);
@@ -36,7 +42,13 @@ public abstract class LivingEntityMixin extends Entity implements CombatExtensio
 
     @ModifyConstant(method = "isDamageSourceBlocked", constant = @Constant(doubleValue = 0.0D, ordinal = 1))
     double getMaxDotProduct(double vanilla){
-        return Mth.cos(ShieldCombatConfigs.getShieldProtectionArc().get().floatValue() * (Mth.PI / 360.0F)) * -1.0D;
+        if(ShieldCombatConfigs.getShieldProtectionArcChange().get()){
+            Optional<Float> protectionArc = ShieldCombatValues.getProtectionArc(this.getUseItem());
+            if(protectionArc.isPresent()){
+                return Mth.cos(protectionArc.get() * (Mth.PI / 360.0F)) * -1.0D;
+            }
+        }
+        return vanilla;
     }
 
     @Inject(method = "knockback", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getDeltaMovement()Lnet/minecraft/world/phys/Vec3;"))

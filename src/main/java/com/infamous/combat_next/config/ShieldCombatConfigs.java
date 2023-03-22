@@ -2,10 +2,10 @@ package com.infamous.combat_next.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 
+import java.util.List;
+
 public class ShieldCombatConfigs {
-    private static ForgeConfigSpec.DoubleValue shieldKnockbackScale;
-    private static ForgeConfigSpec.DoubleValue shieldMaxBlockedDamage;
-    private static ForgeConfigSpec.DoubleValue shieldProtectionArc;
+    private static ForgeConfigSpec.BooleanValue shieldReduceKnockback;
     private static ForgeConfigSpec.BooleanValue shieldDisableChange;
     private static ForgeConfigSpec.IntValue shieldDisableTicksBase;
     private static ForgeConfigSpec.IntValue shieldDisableTicksCleaving;
@@ -19,6 +19,10 @@ public class ShieldCombatConfigs {
     private static ForgeConfigSpec.IntValue shieldIndicatorHotbarRightOffsetX;
     private static ForgeConfigSpec.IntValue shieldIndicatorHotbarLeftOffsetX;
     private static ForgeConfigSpec.IntValue shieldIndicatorHotbarOffsetY;
+    private static ForgeConfigSpec.ConfigValue<List<? extends String>> shieldShieldStrengthEntries;
+    private static ForgeConfigSpec.ConfigValue<List<? extends String>> shieldKnockbackResistanceEntries;
+    private static ForgeConfigSpec.ConfigValue<List<? extends String>> shieldProtectionArcEntries;
+    private static ForgeConfigSpec.BooleanValue shieldProtectionArcChange;
 
     static void createServerConfigs(ForgeConfigSpec.Builder builder) {
         CNConfig.createConfigCategory(builder, " This category holds configs that affect shield combat.", "Shield Combat Config Options", b -> {
@@ -47,34 +51,53 @@ public class ShieldCombatConfigs {
                             For vanilla, this value is false.
                             """)
                     .define("shield_goat_ram_full_knockback", true);
-            shieldKnockbackScale = b
+            shieldKnockbackResistanceEntries = b
                     .comment("""
-                            Adjusts how much received knockback is scaled by when blocking with the vanilla shield.
-                            For vanilla,this value is 1.0.
+                            A list of shield item ids mapped to their corresponding Knockback Resistance value.
+                            Format each entry as a namespaced id (ex. for the Shield, "minecraft:shield"), follow by a "#", follow by a decimal number between 0.0 and 1.0 (ex. 0.5).
+                            Note: Make sure you are surrounding each entry with quotation (") marks, and separate each entry by a comma (,).
                             """)
-                    .defineInRange("shield_knockback_scale", 0.5F, 0.0F, 1.0F);
-            shieldMaxBlockedDamage = b
+                    .defineList("shield_knockback_resistance_entries", List.of("minecraft:shield#0.5"), entry -> entry instanceof String);
+            shieldProtectionArcChange = b
                     .comment("""
-                            Adjusts the maximum damage (in half-hearts) a vanilla shield will absorb when blocking.
-                            Note: The "shield_reduce_damage_blocked" config value must be set to true.
+                            Toggles shields having a custom arc of protection.
+                            If true, the arc of protection they provide will be their Protection Arc entry obtained from the "shield_protection_arc_entries" config value.
+                            If false, all shields will have an arc of protection of 180 degrees.
+                            For vanilla, this value is false.
                             """)
-                    .defineInRange("shield_max_blocked_damage", 5.0F, 0.0F, 1024.0F);
-            shieldProtectionArc = b
+                    .define("shield_protection_arc_change", true);
+            shieldProtectionArcEntries = b
                     .comment("""
-                            Adjusts the arc of protection, in degrees, given when blocking with the vanilla shield.
-                            For vanilla, this value is 180.0.
+                            A list of shield item ids mapped to their corresponding arc of protection value, in degrees.
+                            Format each entry as a namespaced id (ex. for the Shield, "minecraft:shield"), follow by a "#", follow by a decimal number between 0.0 and 180.0 (ex. 100.0).
+                            Note: Make sure you are surrounding each entry with quotation (") marks, and separate each entry by a comma (,).
+                            In vanilla, the Shield's arc of protection is 180 degrees.
                             """)
-                    .defineInRange("shield_protection_arc", 100.0F, 0.0F, 180.0F);
+                    .defineList("shield_protection_arc_entries", List.of("minecraft:shield#100.0"), entry -> entry instanceof String);
             shieldReduceDamageBlocked = b
                     .comment("""
-                            Toggles the vanilla shield no longer blocking all non-projectile and non-explosive damage.
-                            Instead, it will block, at most, the "shield_max_blocked_damage" config value.
+                            Toggles shields no longer blocking all non-projectile and non-explosive damage.
+                            Instead, the max damage they can block will be their Shield Strength entry obtained from the "shield_shield_strength_entries" config value.
                             For vanilla, this value is false.
                             """)
                     .define("shield_reduce_damage_blocked", true);
+            shieldReduceKnockback = b
+                    .comment("""
+                            Toggles shields reducing received knockback.
+                            If true, they will reduce received knockback by their Knockback Resistance entry obtained from the "shield_knockback_resistance_entries" config value.
+                            For vanilla, this value is false.
+                            """)
+                    .define("shield_reduce_knockback", true);
+            shieldShieldStrengthEntries = b
+                    .comment("""
+                            A list of shield item ids mapped to their corresponding Shield Strength value, in half-hearts.
+                            Format each entry as a namespaced id (ex. for the Shield, "minecraft:shield"), follow by a "#", follow by a non-negative integer (ex. 5).
+                            Note: Make sure you are surrounding each entry with quotation (") marks, and separate each entry by a comma (,).
+                            """)
+                    .defineList("shield_shield_strength_entries", List.of("minecraft:shield#5"), entry -> entry instanceof String);
             shieldWarmUpDelay = b
                     .comment("""
-                            Adjusts the amount of ticks (1/20 seconds) the shield must be active before being able to block attacks.
+                            Adjusts the amount of ticks (1/20 seconds) shields must be active before being able to block attacks.
                             For vanilla, this value is 5.
                             """)
                     .defineInRange("shield_warmup_delay", 0, 0, 200);
@@ -146,18 +169,6 @@ public class ShieldCombatConfigs {
         return shieldGoatRamFullKnockback;
     }
 
-    public static ForgeConfigSpec.DoubleValue getShieldKnockbackScale() {
-        return shieldKnockbackScale;
-    }
-
-    public static ForgeConfigSpec.DoubleValue getShieldMaxBlockedDamage() {
-        return shieldMaxBlockedDamage;
-    }
-
-    public static ForgeConfigSpec.DoubleValue getShieldProtectionArc() {
-        return shieldProtectionArc;
-    }
-
     public static ForgeConfigSpec.IntValue getShieldDisableTicksCleaving() {
         return shieldDisableTicksCleaving;
     }
@@ -204,5 +215,25 @@ public class ShieldCombatConfigs {
 
     public static ForgeConfigSpec.IntValue getShieldIndicatorHotbarOffsetY() {
         return shieldIndicatorHotbarOffsetY;
+    }
+
+    public static ForgeConfigSpec.ConfigValue<List<? extends String>> getShieldShieldStrengthEntries() {
+        return shieldShieldStrengthEntries;
+    }
+
+    public static ForgeConfigSpec.ConfigValue<List<? extends String>> getShieldKnockbackResistanceEntries() {
+        return shieldKnockbackResistanceEntries;
+    }
+
+    public static ForgeConfigSpec.BooleanValue getShieldReduceKnockback() {
+        return shieldReduceKnockback;
+    }
+
+    public static ForgeConfigSpec.ConfigValue<List<? extends String>> getShieldProtectionArcEntries() {
+        return shieldProtectionArcEntries;
+    }
+
+    public static ForgeConfigSpec.BooleanValue getShieldProtectionArcChange() {
+        return shieldProtectionArcChange;
     }
 }

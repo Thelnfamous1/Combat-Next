@@ -2,6 +2,7 @@ package com.infamous.combat_next.util;
 
 import com.infamous.combat_next.CombatNext;
 import com.infamous.combat_next.client.ClientCombatUtil;
+import com.infamous.combat_next.config.ShieldCombatValues;
 import com.infamous.combat_next.config.*;
 import com.infamous.combat_next.mixin.ItemAccessor;
 import com.infamous.combat_next.mixin.LivingEntityAccessor;
@@ -9,10 +10,12 @@ import com.infamous.combat_next.mixin.ThrownTridentAccessor;
 import com.infamous.combat_next.network.CNNetwork;
 import com.infamous.combat_next.network.ServerboundMissPacket;
 import com.infamous.combat_next.registry.EnchantmentRegistry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
 import net.minecraft.core.dispenser.AbstractProjectileDispenseBehavior;
 import net.minecraft.locale.Language;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -49,9 +52,12 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 public class CombatUtil {
+    public static final String SHIELD_STRENGTH_DESCRIPTION_ID = String.format("attribute.%s.%s", CombatNext.MODID, "shield_strength");
     private static final UUID BONUS_REACH_MODIFIER_UUID = UUID.fromString("30a9271c-d6b2-4651-b088-800acc43f282");
     private static final String DAMAGE_BOOST_MODIFIER_UUID = "648D7064-6A60-4F59-8ABE-C2C23A6DD7A9";
     private static final String BONUS_REACH_MODIFIER_NAME = new ResourceLocation(CombatNext.MODID, "bonus_reach").toString();
+    private static final UUID SHIELD_KNOCKBACK_RESISTANCE_MODIFIER_UUID = UUID.fromString("8e2dc47b-7ada-433b-9418-f99b4fdc1409");
+    private static final String SHIELD_KNOCKBACK_RESISTANCE_MODIFIER_NAME = new ResourceLocation(CombatNext.MODID, "shield_knockback_resistance").toString();
     private static final float IMPALING_DAMAGE_SCALE = 2.5F;
     private static final int SHIELD_BREAK_EVENT_ID = 30;
 
@@ -264,16 +270,35 @@ public class CombatUtil {
     }
 
     public static void handleBonusAttackReach(Player player, boolean add) {
-        AttributeInstance entityReachInstance = player.getAttribute(ForgeMod.ATTACK_RANGE.get());
-        if (entityReachInstance != null) {
-            AttributeModifier bonusReachModifier = entityReachInstance.getModifier(BONUS_REACH_MODIFIER_UUID);
-            if(bonusReachModifier != null){
+        AttributeInstance instance = player.getAttribute(ForgeMod.ATTACK_RANGE.get());
+        if (instance != null) {
+            AttributeModifier modifier = instance.getModifier(BONUS_REACH_MODIFIER_UUID);
+            if(modifier != null){
                 if(!add) {
-                    entityReachInstance.removeModifier(BONUS_REACH_MODIFIER_UUID);
+                    instance.removeModifier(BONUS_REACH_MODIFIER_UUID);
                 }
             } else if(add){
-                entityReachInstance.addTransientModifier(
+                instance.addTransientModifier(
                         new AttributeModifier(BONUS_REACH_MODIFIER_UUID, BONUS_REACH_MODIFIER_NAME, MeleeCombatConfigs.getAttackReachBonusWhenSupercharged().get(), AttributeModifier.Operation.ADDITION));
+            }
+        }
+    }
+
+    public static void handleShieldKnockbackResistance(Player player, boolean add) {
+        AttributeInstance instance = player.getAttribute(Attributes.KNOCKBACK_RESISTANCE);
+        if (instance != null) {
+            AttributeModifier modifier = instance.getModifier(SHIELD_KNOCKBACK_RESISTANCE_MODIFIER_UUID);
+            if(modifier != null){
+                if(!add) {
+                    instance.removeModifier(SHIELD_KNOCKBACK_RESISTANCE_MODIFIER_UUID);
+                    CombatNext.LOGGER.info("Removed shield knockback resistance modifier!");
+                }
+            } else if(add){
+                ShieldCombatValues.getKnockbackResistance(player.getUseItem()).ifPresent(
+                        knockbackResistance -> instance.addTransientModifier(
+                                new AttributeModifier(SHIELD_KNOCKBACK_RESISTANCE_MODIFIER_UUID, SHIELD_KNOCKBACK_RESISTANCE_MODIFIER_NAME, knockbackResistance, AttributeModifier.Operation.ADDITION))
+                );
+                CombatNext.LOGGER.info("Added shield knockback resistance modifier!");
             }
         }
     }
@@ -358,5 +383,12 @@ public class CombatUtil {
 
     public static InteractionHand getShieldHoldingHand(LivingEntity livingEntity) {
         return CombatUtil.isShield(livingEntity.getOffhandItem()) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
+    }
+
+    public static Component getShieldModifierTooltip(AttributeModifier.Operation operation, double value, String descriptionId){
+        return Component.literal(" ")
+                .append(Component.translatable("attribute.modifier.equals." + operation.toValue(),
+                        ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(value),
+                        Component.translatable(descriptionId).withStyle(ChatFormatting.DARK_GREEN)));
     }
 }

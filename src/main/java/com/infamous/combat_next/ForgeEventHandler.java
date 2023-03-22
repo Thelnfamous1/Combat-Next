@@ -2,6 +2,7 @@ package com.infamous.combat_next;
 
 import com.infamous.combat_next.capability.PlayerCapability;
 import com.infamous.combat_next.client.ClientCombatUtil;
+import com.infamous.combat_next.config.ShieldCombatValues;
 import com.infamous.combat_next.config.*;
 import com.infamous.combat_next.data.CNTags;
 import com.infamous.combat_next.network.CNNetwork;
@@ -11,9 +12,11 @@ import com.infamous.combat_next.util.CombatUtil;
 import com.infamous.combat_next.util.WeaponRebalancing;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
@@ -67,13 +70,15 @@ public class ForgeEventHandler {
         if(!event.isCanceled()){
             LivingEntity user = event.getEntity();
             ItemStack stack = user.getUseItem();
-            float amount = event.getBlockedDamage();
+            float blockedDamage = event.getBlockedDamage();
             DamageSource source = event.getDamageSource();
             CombatExtensions.cast(user).setLastBlockedDamageSource(source);
 
             if(CombatUtil.isShield(stack) && ShieldCombatConfigs.getShieldReduceDamageBlocked().get()){
                 if(!source.isProjectile() && !source.isExplosion()){
-                    event.setBlockedDamage(Math.min(ShieldCombatConfigs.getShieldMaxBlockedDamage().get().floatValue(), amount));
+                    ShieldCombatValues.getShieldStrength(stack).ifPresent(
+                            shieldStrength -> event.setBlockedDamage(Mth.clamp(shieldStrength, 0, blockedDamage))
+                    );
                 }
             }
         }
@@ -119,22 +124,23 @@ public class ForgeEventHandler {
 
     @SubscribeEvent
     static void onItemTooltip(ItemTooltipEvent event){
+        ItemStack stack = event.getItemStack();
+        List<Component> toolTips = event.getToolTip();
         if(MeleeCombatConfigs.getWeaponRebalancing().get()){
             Player player = event.getEntity();
             if(player == null) return;
-            ItemStack stack = event.getItemStack();
-            List<Component> toolTips = event.getToolTip();
             WeaponRebalancing.adjustItemTooltip(player, stack, toolTips);
         }
-    }
-
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    static void onKnockback(LivingKnockBackEvent event){
-        if(!event.isCanceled()){
-            LivingEntity victim = event.getEntity();
-            DamageSource lastBlockedDamageSource = CombatExtensions.cast(victim).getLastBlockedDamageSource();
-            if(lastBlockedDamageSource != null && victim.isDamageSourceBlocked(lastBlockedDamageSource)){
-                event.setStrength(event.getStrength() * ShieldCombatConfigs.getShieldKnockbackScale().get().floatValue());
+        if(CombatUtil.isShield(stack)){
+            if(ShieldCombatConfigs.getShieldReduceDamageBlocked().get()){
+                ShieldCombatValues.getShieldStrength(stack).ifPresent(
+                        shieldStrength -> toolTips.add(CombatUtil.getShieldModifierTooltip(AttributeModifier.Operation.ADDITION, shieldStrength, CombatUtil.SHIELD_STRENGTH_DESCRIPTION_ID))
+                );
+            }
+            if(ShieldCombatConfigs.getShieldReduceKnockback().get()){
+                ShieldCombatValues.getKnockbackResistance(stack).ifPresent(
+                        knockbackResistance -> toolTips.add(CombatUtil.getShieldModifierTooltip(AttributeModifier.Operation.ADDITION, knockbackResistance * 10.0D, Attributes.KNOCKBACK_RESISTANCE.getDescriptionId()))
+                );
             }
         }
     }
@@ -186,6 +192,9 @@ public class ForgeEventHandler {
             if(MeleeCombatConfigs.getAttackSupercharge().get()){
                 boolean supercharged = CombatUtil.isSupercharged(event.player, 0.5F);
                 CombatUtil.handleBonusAttackReach(event.player, supercharged && !event.player.isCrouching());
+            }
+            if(ShieldCombatConfigs.getShieldReduceKnockback().get()){
+                CombatUtil.handleShieldKnockbackResistance(event.player, event.player.isBlocking());
             }
         }
     }

@@ -13,6 +13,8 @@ public class ModClientEventHandler {
     @SubscribeEvent
     static void registerOverlay(RegisterGuiOverlaysEvent event){
         event.registerAbove(VanillaGuiOverlay.CROSSHAIR.id(), CNGuiOverlay.SHIELD_INDICATOR_CROSSHAIR.id().getPath(), CNGuiOverlay.SHIELD_INDICATOR_CROSSHAIR.overlay);
+        CombatNext.LOGGER.info("Registered the {} Gui Overlay", CNGuiOverlay.SHIELD_INDICATOR_CROSSHAIR.id());
         event.registerBelow(VanillaGuiOverlay.HOTBAR.id(), CNGuiOverlay.SHIELD_INDICATOR_HOTBAR.id().getPath(), CNGuiOverlay.SHIELD_INDICATOR_HOTBAR.overlay);
+        CombatNext.LOGGER.info("Registered the {} Gui Overlay", CNGuiOverlay.SHIELD_INDICATOR_HOTBAR.id());
     }
 }
