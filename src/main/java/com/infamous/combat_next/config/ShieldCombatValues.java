@@ -21,6 +21,8 @@ public class ShieldCombatValues {
     private static final Map<Item, Integer> SHIELD_STRENGTH_VALUES = new HashMap<>();
     private static final Map<Item, Float> KNOCKBACK_RESISTANCE_VALUES = new HashMap<>();
     private static final Map<Item, Float> PROTECTION_ARC_VALUES = new HashMap<>();
+    private static final Map<Item, Integer> WARM_UP_DELAY_VALUES = new HashMap<>();
+    private static final Map<Item, Integer> DISABLE_TIME_BASE_VALUES = new HashMap<>();
 
     public static Optional<Integer> getShieldStrength(ItemStack stack){
         return Optional.ofNullable(SHIELD_STRENGTH_VALUES.get(stack.getItem()));
@@ -32,6 +34,12 @@ public class ShieldCombatValues {
 
     public static Optional<Float> getProtectionArc(ItemStack stack){
         return Optional.ofNullable(PROTECTION_ARC_VALUES.get(stack.getItem()));
+    }
+    public static Optional<Integer> getWarmUpDelay(ItemStack stack){
+        return Optional.ofNullable(WARM_UP_DELAY_VALUES.get(stack.getItem()));
+    }
+    public static Optional<Integer> getDisableTimeBase(ItemStack stack){
+        return Optional.ofNullable(DISABLE_TIME_BASE_VALUES.get(stack.getItem()));
     }
 
     @SubscribeEvent
@@ -45,7 +53,7 @@ public class ShieldCombatValues {
     private static void buildCaches() {
         List<? extends String> shieldStrengthEntries = ShieldCombatConfigs.getShieldShieldStrengthEntries().get();
         processEntries(shieldStrengthEntries, SHIELD_STRENGTH_VALUES, "Shield Strength", Integer::parseInt,
-                ShieldCombatValues::isValidShieldStrength, "must be greater than 0"
+                ShieldCombatValues::isValidShieldStrength, "must be greater than or equal to 0"
         );
         List<? extends String> shieldKnockbackResistanceEntries = ShieldCombatConfigs.getShieldKnockbackResistanceEntries().get();
         processEntries(shieldKnockbackResistanceEntries, KNOCKBACK_RESISTANCE_VALUES, "Knockback Resistance", Float::parseFloat,
@@ -55,10 +63,18 @@ public class ShieldCombatValues {
         processEntries(shieldProtectionArcEntries, PROTECTION_ARC_VALUES, "Protection Arc", Float::parseFloat,
                 ShieldCombatValues::isValidShieldArc, "must be between 0.0 and 180.0"
         );
+        List<? extends String> shieldWarmUpDelayEntries = ShieldCombatConfigs.getShieldWarmUpDelayEntries().get();
+        processEntries(shieldWarmUpDelayEntries, WARM_UP_DELAY_VALUES, "Warm-Up Delay", Integer::parseInt,
+                ShieldCombatValues::isValidWarmUpDelay, "must be greater than or equal to  0"
+        );
+        List<? extends String> shieldDisableTimeBaseEntries = ShieldCombatConfigs.getShieldDisableTimeBaseEntries().get();
+        processEntries(shieldDisableTimeBaseEntries, DISABLE_TIME_BASE_VALUES, "Disable Time Base", Integer::parseInt,
+                ShieldCombatValues::isValidDisableBase, "must be greater than or equal to  0"
+        );
     }
 
     private static boolean isValidShieldStrength(Integer shieldStrength) {
-        return shieldStrength > 0;
+        return shieldStrength >= 0;
     }
 
     private static boolean isValidKnockbackResistance(Float knockbackResistance) {
@@ -67,6 +83,14 @@ public class ShieldCombatValues {
 
     private static boolean isValidShieldArc(Float protectionArc) {
         return protectionArc >= 0.0F && protectionArc <= 180.0F;
+    }
+
+    private static boolean isValidWarmUpDelay(Integer warmUpDelay) {
+        return warmUpDelay >= 0;
+    }
+
+    private static boolean isValidDisableBase(Integer disableTimeBase) {
+        return disableTimeBase >= 0;
     }
 
     private static <V extends Number> void processEntries(List<? extends String> entryStrings, Map<Item, V> cache, String cacheName, Function<String, V> valueParser, Predicate<V> valueValidator, String invalidValueMsg) {

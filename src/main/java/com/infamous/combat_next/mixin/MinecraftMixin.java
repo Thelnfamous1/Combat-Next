@@ -2,6 +2,7 @@ package com.infamous.combat_next.mixin;
 
 import com.infamous.combat_next.client.ClientCombatUtil;
 import com.infamous.combat_next.config.MeleeCombatConfigs;
+import com.infamous.combat_next.config.ShieldCombatConfigs;
 import com.infamous.combat_next.util.CombatUtil;
 import com.infamous.combat_next.util.MinecraftCombat;
 import net.minecraft.client.Minecraft;
@@ -54,7 +55,7 @@ public abstract class MinecraftMixin implements MinecraftCombat {
     @ModifyVariable(method = "handleKeybinds", at = @At(value = "STORE", ordinal = 1))
     private boolean modifyStartedAttack(boolean original){
         //noinspection ConstantConditions
-        if (this.player.isUsingItem() && ClientCombatUtil.isCrouchShielding(this.player)) {
+        if (this.player.isUsingItem() && ClientCombatUtil.isCrouchShielding(this.player) && ShieldCombatConfigs.getShieldAttackWhileCrouchShielding().get()) {
             while (this.options.keyAttack.consumeClick()) {
                 original |= this.startAttack();
             }
@@ -64,7 +65,7 @@ public abstract class MinecraftMixin implements MinecraftCombat {
 
     @Redirect(method = "continueAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z"))
     private boolean redirectIsUsingItem(LocalPlayer instance){
-        return instance.isUsingItem() && !ClientCombatUtil.isCrouchShielding(instance);
+        return instance.isUsingItem() && (!ClientCombatUtil.isCrouchShielding(instance) || !ShieldCombatConfigs.getShieldAttackWhileCrouchShielding().get());
     }
 
     @Override

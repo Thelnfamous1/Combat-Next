@@ -1,12 +1,10 @@
 package com.infamous.combat_next.mixin;
 
-import com.infamous.combat_next.config.ShieldCombatValues;
 import com.infamous.combat_next.config.BugFixConfigs;
 import com.infamous.combat_next.config.GeneralCombatConfigs;
 import com.infamous.combat_next.config.ShieldCombatConfigs;
-import com.infamous.combat_next.util.CombatExtensions;
+import com.infamous.combat_next.config.ShieldCombatValues;
 import net.minecraft.util.Mth;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -23,9 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Optional;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin extends Entity implements CombatExtensions {
-    private DamageSource lastBlockedDamageSource;
-    private long lastBlockedDamageStamp;
+public abstract class LivingEntityMixin extends Entity{
 
     @Shadow public abstract void knockback(double p_147241_, double p_147242_, double p_147243_);
 
@@ -37,7 +33,10 @@ public abstract class LivingEntityMixin extends Entity implements CombatExtensio
 
     @ModifyConstant(method = "isBlocking", constant = @Constant(intValue = 5, ordinal = 0))
     int getShieldWarmUpDelay(int vanilla){
-        return ShieldCombatConfigs.getShieldWarmUpDelay().get();
+        if(ShieldCombatConfigs.getShieldWarmUpDelayChange().get()){
+            return ShieldCombatValues.getWarmUpDelay(this.getUseItem()).orElse(vanilla);
+        }
+        return vanilla;
     }
 
     @ModifyConstant(method = "isDamageSourceBlocked", constant = @Constant(doubleValue = 0.0D, ordinal = 1))
@@ -73,18 +72,4 @@ public abstract class LivingEntityMixin extends Entity implements CombatExtensio
         return GeneralCombatConfigs.getIFramesLeftBeforeDamageable().get();
     }
 
-    @Override
-    public DamageSource getLastBlockedDamageSource() {
-        if (this.level.getGameTime() - this.lastBlockedDamageStamp > 40L) {
-            this.lastBlockedDamageSource = null;
-        }
-
-        return this.lastBlockedDamageSource;
-    }
-
-    @Override
-    public void setLastBlockedDamageSource(DamageSource source) {
-        this.lastBlockedDamageSource = source;
-        this.lastBlockedDamageStamp = this.level.getGameTime();
-    }
 }

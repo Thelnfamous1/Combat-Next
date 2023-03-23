@@ -2,12 +2,10 @@ package com.infamous.combat_next;
 
 import com.infamous.combat_next.capability.PlayerCapability;
 import com.infamous.combat_next.client.ClientCombatUtil;
-import com.infamous.combat_next.config.ShieldCombatValues;
 import com.infamous.combat_next.config.*;
 import com.infamous.combat_next.data.CNTags;
 import com.infamous.combat_next.network.CNNetwork;
 import com.infamous.combat_next.network.ClientboundConfigSyncPacket;
-import com.infamous.combat_next.util.CombatExtensions;
 import com.infamous.combat_next.util.CombatUtil;
 import com.infamous.combat_next.util.WeaponRebalancing;
 import net.minecraft.network.chat.Component;
@@ -19,12 +17,18 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemCooldowns;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.*;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.living.ShieldBlockEvent;
 import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.eventbus.api.Event;
@@ -72,7 +76,6 @@ public class ForgeEventHandler {
             ItemStack stack = user.getUseItem();
             float blockedDamage = event.getBlockedDamage();
             DamageSource source = event.getDamageSource();
-            CombatExtensions.cast(user).setLastBlockedDamageSource(source);
 
             if(CombatUtil.isShield(stack) && ShieldCombatConfigs.getShieldReduceDamageBlocked().get()){
                 if(!source.isProjectile() && !source.isExplosion()){
@@ -133,13 +136,13 @@ public class ForgeEventHandler {
         }
         if(CombatUtil.isShield(stack)){
             if(ShieldCombatConfigs.getShieldReduceDamageBlocked().get()){
-                ShieldCombatValues.getShieldStrength(stack).ifPresent(
-                        shieldStrength -> toolTips.add(CombatUtil.getShieldModifierTooltip(AttributeModifier.Operation.ADDITION, shieldStrength, CombatUtil.SHIELD_STRENGTH_DESCRIPTION_ID))
+                ShieldCombatValues.getShieldStrength(stack).filter(shieldStrength -> shieldStrength > 0).ifPresent(
+                        shieldStrength -> toolTips.add(CombatUtil.getShieldModifierTooltip(AttributeModifier.Operation.ADDITION, (double) shieldStrength, CombatUtil.SHIELD_STRENGTH_DESCRIPTION_ID))
                 );
             }
             if(ShieldCombatConfigs.getShieldReduceKnockback().get()){
-                ShieldCombatValues.getKnockbackResistance(stack).ifPresent(
-                        knockbackResistance -> toolTips.add(CombatUtil.getShieldModifierTooltip(AttributeModifier.Operation.ADDITION, knockbackResistance * 10.0D, Attributes.KNOCKBACK_RESISTANCE.getDescriptionId()))
+                ShieldCombatValues.getKnockbackResistance(stack).filter(knockbackResistance -> knockbackResistance > 0.0F).ifPresent(
+                        knockbackResistance -> toolTips.add(CombatUtil.getShieldModifierTooltip(AttributeModifier.Operation.ADDITION, (double)knockbackResistance * 10.0D, Attributes.KNOCKBACK_RESISTANCE.getDescriptionId()))
                 );
             }
         }
@@ -216,6 +219,15 @@ public class ForgeEventHandler {
                 CombatUtil.adjustAttributeBaseValue(player, Attributes.ATTACK_DAMAGE, CombatUtil.getBaseAttackDamage());
                 CombatUtil.adjustAttributeBaseValue(player, ForgeMod.ATTACK_RANGE.get(), CombatUtil.getBaseAttackRange());
             }
+        }
+    }
+
+    @SubscribeEvent
+    static void onPlayerClone(PlayerEvent.Clone event){
+        if(MeleeCombatConfigs.getPlayerAttributeChange().get()){
+            ServerPlayer player = (ServerPlayer) event.getEntity();
+            CombatUtil.adjustAttributeBaseValue(player, Attributes.ATTACK_DAMAGE, CombatUtil.getBaseAttackDamage());
+            CombatUtil.adjustAttributeBaseValue(player, ForgeMod.ATTACK_RANGE.get(), CombatUtil.getBaseAttackRange());
         }
     }
 

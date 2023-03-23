@@ -52,7 +52,7 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 public class CombatUtil {
-    public static final String SHIELD_STRENGTH_DESCRIPTION_ID = String.format("attribute.%s.%s", CombatNext.MODID, "shield_strength");
+    public static final String SHIELD_STRENGTH_DESCRIPTION_ID = String.format("item.minecraft.shield.%s", "shield_strength");
     private static final UUID BONUS_REACH_MODIFIER_UUID = UUID.fromString("30a9271c-d6b2-4651-b088-800acc43f282");
     private static final String DAMAGE_BOOST_MODIFIER_UUID = "648D7064-6A60-4F59-8ABE-C2C23A6DD7A9";
     private static final String BONUS_REACH_MODIFIER_NAME = new ResourceLocation(CombatNext.MODID, "bonus_reach").toString();
@@ -60,6 +60,7 @@ public class CombatUtil {
     private static final String SHIELD_KNOCKBACK_RESISTANCE_MODIFIER_NAME = new ResourceLocation(CombatNext.MODID, "shield_knockback_resistance").toString();
     private static final float IMPALING_DAMAGE_SCALE = 2.5F;
     private static final int SHIELD_BREAK_EVENT_ID = 30;
+    public static final int DEFAULT_SHIELD_DISABLE_TIME = 32;
 
     private static void registerTridentDispenseBehavior(){
         if(RangedCombatConfigs.getTridentShootFromDispenser().get()){
@@ -125,8 +126,8 @@ public class CombatUtil {
 
     public static void newDisableShield(Player victim, LivingEntity attacker){
         int cleavingLevel = attacker.getMainHandItem().getEnchantmentLevel(EnchantmentRegistry.CLEAVING.get());
-        int cleavingTicks = ShieldCombatConfigs.getShieldDisableTicksCleaving().get() * cleavingLevel;
-        victim.getCooldowns().addCooldown(victim.getUseItem().getItem(), ShieldCombatConfigs.getShieldDisableTicksBase().get() + cleavingTicks);
+        int cleavingTicks = ShieldCombatConfigs.getShieldDisableTimeCleaving().get() * cleavingLevel;
+        victim.getCooldowns().addCooldown(victim.getUseItem().getItem(), ShieldCombatValues.getDisableTimeBase(victim.getUseItem()).orElse(DEFAULT_SHIELD_DISABLE_TIME) + cleavingTicks);
         victim.stopUsingItem();
         victim.level.broadcastEntityEvent(victim, (byte) SHIELD_BREAK_EVENT_ID);
     }
@@ -291,14 +292,12 @@ public class CombatUtil {
             if(modifier != null){
                 if(!add) {
                     instance.removeModifier(SHIELD_KNOCKBACK_RESISTANCE_MODIFIER_UUID);
-                    CombatNext.LOGGER.info("Removed shield knockback resistance modifier!");
                 }
             } else if(add){
                 ShieldCombatValues.getKnockbackResistance(player.getUseItem()).ifPresent(
                         knockbackResistance -> instance.addTransientModifier(
                                 new AttributeModifier(SHIELD_KNOCKBACK_RESISTANCE_MODIFIER_UUID, SHIELD_KNOCKBACK_RESISTANCE_MODIFIER_NAME, knockbackResistance, AttributeModifier.Operation.ADDITION))
                 );
-                CombatNext.LOGGER.info("Added shield knockback resistance modifier!");
             }
         }
     }

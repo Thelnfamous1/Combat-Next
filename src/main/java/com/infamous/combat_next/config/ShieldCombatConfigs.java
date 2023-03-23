@@ -7,9 +7,8 @@ import java.util.List;
 public class ShieldCombatConfigs {
     private static ForgeConfigSpec.BooleanValue shieldReduceKnockback;
     private static ForgeConfigSpec.BooleanValue shieldDisableChange;
-    private static ForgeConfigSpec.IntValue shieldDisableTicksBase;
-    private static ForgeConfigSpec.IntValue shieldDisableTicksCleaving;
-    private static ForgeConfigSpec.IntValue shieldWarmUpDelay;
+    private static ForgeConfigSpec.IntValue shieldDisableTimeCleaving;
+    private static ForgeConfigSpec.BooleanValue shieldWarmUpDelayChange;
     private static ForgeConfigSpec.BooleanValue shieldReduceDamageBlocked;
     private static ForgeConfigSpec.BooleanValue shieldGoatRamFullKnockback;
     private static ForgeConfigSpec.BooleanValue shieldCrouch;
@@ -22,28 +21,40 @@ public class ShieldCombatConfigs {
     private static ForgeConfigSpec.ConfigValue<List<? extends String>> shieldShieldStrengthEntries;
     private static ForgeConfigSpec.ConfigValue<List<? extends String>> shieldKnockbackResistanceEntries;
     private static ForgeConfigSpec.ConfigValue<List<? extends String>> shieldProtectionArcEntries;
+    private static ForgeConfigSpec.ConfigValue<List<? extends String>> shieldWarmUpDelayEntries;
+    private static ForgeConfigSpec.ConfigValue<List<? extends String>> shieldDisableTimeBaseEntries;
     private static ForgeConfigSpec.BooleanValue shieldProtectionArcChange;
+    private static ForgeConfigSpec.BooleanValue shieldAttackWhileCrouchShielding;
 
     static void createServerConfigs(ForgeConfigSpec.Builder builder) {
         CNConfig.createConfigCategory(builder, " This category holds configs that affect shield combat.", "Shield Combat Config Options", b -> {
+            shieldAttackWhileCrouchShielding = b
+                    .comment("""
+                            Toggles being able to attack while crouch-shielding.
+                            For vanilla, this value is false.
+                            """)
+                    .define("shield_attack_while_crouch_shielding", true);
             shieldDisableChange = b
                     .comment("""
                             Toggles the vanilla shield disable logic being changed to utilize the Cleaving enchantment.
+                            If true, the base number of ticks (1/20 seconds) a shield will be disabled for will be equal to their disable time base entry obtained from the "shield_disable_time_base_entries" config value.
+                            An additional number of ticks (1/20 seconds) will be added by multiplying the "shield_disable_time_cleaving" config value by the attacking weapon's Cleaving level.
                             For vanilla, this value is false.
                             """)
                     .define("shield_disable_change", true);
-            shieldDisableTicksBase = b
+            shieldDisableTimeBaseEntries = b
                     .comment("""
-                            Adjusts the base amount of ticks (1/20 seconds) a shield is disabled for.
-                            Note: The "shield_disable_change" config value must be set to true.
+                            A list of shield item ids mapped to their corresponding disable time base value, in ticks (1/20 seconds).
+                            Format each entry as a namespaced id (ex. for the Shield, "minecraft:shield"), follow by a "#", follow by a non-negative integer (ex. 32).
+                            Note: Make sure you are surrounding each entry with quotation (") marks, and separate each entry by a comma (,).
                             """)
-                    .defineInRange("shield_disable_ticks_base", 32, 0, 600);
-            shieldDisableTicksCleaving = b
+                    .defineList("shield_disable_time_base_entries", List.of("minecraft:shield#32"), entry -> entry instanceof String);
+            shieldDisableTimeCleaving = b
                     .comment("""
                             Adjusts the additional amount of ticks (1/20 seconds) a shield is disabled for when hit by an axe, per level of Cleaving.
                             Note: The "shield_disable_change" config value must be set to true.
                             """)
-                    .defineInRange("shield_disable_ticks_cleaving", 10, 0, 20);
+                    .defineInRange("shield_disable_time_cleaving", 10, 0, 20);
             shieldGoatRamFullKnockback = b
                     .comment("""
                             Toggles ramming Goats applying full knockback to a target, regardless of whether or not they are shielded.
@@ -95,12 +106,20 @@ public class ShieldCombatConfigs {
                             Note: Make sure you are surrounding each entry with quotation (") marks, and separate each entry by a comma (,).
                             """)
                     .defineList("shield_shield_strength_entries", List.of("minecraft:shield#5"), entry -> entry instanceof String);
-            shieldWarmUpDelay = b
+            shieldWarmUpDelayChange = b
                     .comment("""
-                            Adjusts the amount of ticks (1/20 seconds) shields must be active before being able to block attacks.
-                            For vanilla, this value is 5.
+                            Toggles shields having a custom warm up delay, in ticks (1/20 seconds).
+                            if true, the time it takes for a shield to fully activate will be their warm up delay entry obtained from the "shield_warm_up_delay_entries" config value.
+                            For vanilla, this value is false.
                             """)
-                    .defineInRange("shield_warmup_delay", 0, 0, 200);
+                    .define("shield_warmup_delay_change", true);
+            shieldWarmUpDelayEntries = b
+                    .comment("""
+                            A list of shield item ids mapped to their corresponding warm up delay value, in ticks (1/20 seconds) .
+                            Format each entry as a namespaced id (ex. for the Shield, "minecraft:shield"), follow by a "#", follow by a non-negative integer (ex. 0).
+                            Note: Make sure you are surrounding each entry with quotation (") marks, and separate each entry by a comma (,).
+                            """)
+                    .defineList("shield_warm_up_delay_entries", List.of("minecraft:shield#0"), entry -> entry instanceof String);
         });
     }
 
@@ -169,12 +188,12 @@ public class ShieldCombatConfigs {
         return shieldGoatRamFullKnockback;
     }
 
-    public static ForgeConfigSpec.IntValue getShieldDisableTicksCleaving() {
-        return shieldDisableTicksCleaving;
+    public static ForgeConfigSpec.IntValue getShieldDisableTimeCleaving() {
+        return shieldDisableTimeCleaving;
     }
 
-    public static ForgeConfigSpec.IntValue getShieldWarmUpDelay() {
-        return shieldWarmUpDelay;
+    public static ForgeConfigSpec.BooleanValue getShieldWarmUpDelayChange() {
+        return shieldWarmUpDelayChange;
     }
 
     public static ForgeConfigSpec.BooleanValue getShieldReduceDamageBlocked() {
@@ -183,10 +202,6 @@ public class ShieldCombatConfigs {
 
     public static ForgeConfigSpec.BooleanValue getShieldDisableChange() {
         return shieldDisableChange;
-    }
-
-    public static ForgeConfigSpec.IntValue getShieldDisableTicksBase() {
-        return shieldDisableTicksBase;
     }
 
     public static ForgeConfigSpec.BooleanValue getShieldCrouch() {
@@ -235,5 +250,17 @@ public class ShieldCombatConfigs {
 
     public static ForgeConfigSpec.BooleanValue getShieldProtectionArcChange() {
         return shieldProtectionArcChange;
+    }
+
+    public static ForgeConfigSpec.ConfigValue<List<? extends String>> getShieldDisableTimeBaseEntries() {
+        return shieldDisableTimeBaseEntries;
+    }
+
+    public static ForgeConfigSpec.ConfigValue<List<? extends String>> getShieldWarmUpDelayEntries() {
+        return shieldWarmUpDelayEntries;
+    }
+
+    public static ForgeConfigSpec.BooleanValue getShieldAttackWhileCrouchShielding() {
+        return shieldAttackWhileCrouchShielding;
     }
 }
