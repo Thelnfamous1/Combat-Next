@@ -37,7 +37,7 @@ public class ShieldCombatConfigs {
             shieldDisableChange = b
                     .comment("""
                             Toggles the vanilla shield disable logic being changed to utilize the Cleaving enchantment.
-                            If true, the base number of ticks (1/20 seconds) a shield will be disabled for will be equal to their disable time base entry obtained from the "shield_disable_time_base_entries" config value.
+                            If true, the base number of ticks (1/20 seconds) a shield will be disabled for will be equal to their disable time base value obtained from the "shield_disable_time_base_entries" config value.
                             An additional number of ticks (1/20 seconds) will be added by multiplying the "shield_disable_time_cleaving" config value by the attacking weapon's Cleaving level.
                             For vanilla, this value is false.
                             """)
@@ -72,7 +72,7 @@ public class ShieldCombatConfigs {
             shieldProtectionArcChange = b
                     .comment("""
                             Toggles shields having a custom arc of protection.
-                            If true, the arc of protection they provide will be their Protection Arc entry obtained from the "shield_protection_arc_entries" config value.
+                            If true, the arc of protection they provide will be their Protection Arc value obtained from the "shield_protection_arc_entries" config value.
                             If false, all shields will have an arc of protection of 180 degrees.
                             For vanilla, this value is false.
                             """)
@@ -88,14 +88,14 @@ public class ShieldCombatConfigs {
             shieldReduceDamageBlocked = b
                     .comment("""
                             Toggles shields no longer blocking all non-projectile and non-explosive damage.
-                            Instead, the max damage they can block will be their Shield Strength entry obtained from the "shield_shield_strength_entries" config value.
+                            Instead, the max damage they can block will be their Shield Strength value obtained from the "shield_shield_strength_entries" config value.
                             For vanilla, this value is false.
                             """)
                     .define("shield_reduce_damage_blocked", true);
             shieldReduceKnockback = b
                     .comment("""
                             Toggles shields reducing received knockback.
-                            If true, they will reduce received knockback by their Knockback Resistance entry obtained from the "shield_knockback_resistance_entries" config value.
+                            If true, they will reduce received knockback by their Knockback Resistance value obtained from the "shield_knockback_resistance_entries" config value.
                             For vanilla, this value is false.
                             """)
                     .define("shield_reduce_knockback", true);
@@ -109,7 +109,7 @@ public class ShieldCombatConfigs {
             shieldWarmUpDelayChange = b
                     .comment("""
                             Toggles shields having a custom warm up delay, in ticks (1/20 seconds).
-                            if true, the time it takes for a shield to fully activate will be their warm up delay entry obtained from the "shield_warm_up_delay_entries" config value.
+                            if true, the time it takes for a shield to fully activate will be their warm up delay value obtained from the "shield_warm_up_delay_entries" config value.
                             For vanilla, this value is false.
                             """)
                     .define("shield_warmup_delay_change", true);

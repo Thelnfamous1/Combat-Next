@@ -7,7 +7,7 @@ import com.infamous.combat_next.data.CNTags;
 import com.infamous.combat_next.network.CNNetwork;
 import com.infamous.combat_next.network.ClientboundConfigSyncPacket;
 import com.infamous.combat_next.util.CombatUtil;
-import com.infamous.combat_next.util.WeaponRebalancing;
+import com.infamous.combat_next.config.WeaponRebalancing;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -79,7 +79,7 @@ public class ForgeEventHandler {
 
             if(CombatUtil.isShield(stack) && ShieldCombatConfigs.getShieldReduceDamageBlocked().get()){
                 if(!source.isProjectile() && !source.isExplosion()){
-                    ShieldCombatValues.getShieldStrength(stack).ifPresent(
+                    ShieldCombatValues.getShieldStrength(stack.getItem()).ifPresent(
                             shieldStrength -> event.setBlockedDamage(Mth.clamp(shieldStrength, 0, blockedDamage))
                     );
                 }
@@ -136,12 +136,12 @@ public class ForgeEventHandler {
         }
         if(CombatUtil.isShield(stack)){
             if(ShieldCombatConfigs.getShieldReduceDamageBlocked().get()){
-                ShieldCombatValues.getShieldStrength(stack).filter(shieldStrength -> shieldStrength > 0).ifPresent(
+                ShieldCombatValues.getShieldStrength(stack.getItem()).filter(shieldStrength -> shieldStrength > 0).ifPresent(
                         shieldStrength -> toolTips.add(CombatUtil.getShieldModifierTooltip(AttributeModifier.Operation.ADDITION, (double) shieldStrength, CombatUtil.SHIELD_STRENGTH_DESCRIPTION_ID))
                 );
             }
             if(ShieldCombatConfigs.getShieldReduceKnockback().get()){
-                ShieldCombatValues.getKnockbackResistance(stack).filter(knockbackResistance -> knockbackResistance > 0.0F).ifPresent(
+                ShieldCombatValues.getKnockbackResistance(stack.getItem()).filter(knockbackResistance -> knockbackResistance > 0.0F).ifPresent(
                         knockbackResistance -> toolTips.add(CombatUtil.getShieldModifierTooltip(AttributeModifier.Operation.ADDITION, (double)knockbackResistance * 10.0D, Attributes.KNOCKBACK_RESISTANCE.getDescriptionId()))
                 );
             }

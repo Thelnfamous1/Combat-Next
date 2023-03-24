@@ -34,7 +34,7 @@ public abstract class LivingEntityMixin extends Entity{
     @ModifyConstant(method = "isBlocking", constant = @Constant(intValue = 5, ordinal = 0))
     int getShieldWarmUpDelay(int vanilla){
         if(ShieldCombatConfigs.getShieldWarmUpDelayChange().get()){
-            return ShieldCombatValues.getWarmUpDelay(this.getUseItem()).orElse(vanilla);
+            return ShieldCombatValues.getWarmUpDelay(this.getUseItem().getItem()).orElse(vanilla);
         }
         return vanilla;
     }
@@ -42,7 +42,7 @@ public abstract class LivingEntityMixin extends Entity{
     @ModifyConstant(method = "isDamageSourceBlocked", constant = @Constant(doubleValue = 0.0D, ordinal = 1))
     double getMaxDotProduct(double vanilla){
         if(ShieldCombatConfigs.getShieldProtectionArcChange().get()){
-            Optional<Float> protectionArc = ShieldCombatValues.getProtectionArc(this.getUseItem());
+            Optional<Float> protectionArc = ShieldCombatValues.getProtectionArc(this.getUseItem().getItem());
             if(protectionArc.isPresent()){
                 return Mth.cos(protectionArc.get() * (Mth.PI / 360.0F)) * -1.0D;
             }

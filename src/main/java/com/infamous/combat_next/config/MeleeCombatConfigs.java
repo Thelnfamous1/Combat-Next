@@ -2,6 +2,8 @@ package com.infamous.combat_next.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 
+import java.util.List;
+
 public class MeleeCombatConfigs {
     private static ForgeConfigSpec.IntValue attackMissCooldownTicks;
     private static ForgeConfigSpec.DoubleValue attackReachBonusWhenSupercharged;
@@ -26,6 +28,9 @@ public class MeleeCombatConfigs {
     private static ForgeConfigSpec.BooleanValue playerAttackReachBaseChange;
     private static ForgeConfigSpec.BooleanValue playerAttributeChange;
     private static ForgeConfigSpec.BooleanValue playerAttributeChangeFirstLogin;
+    private static ForgeConfigSpec.ConfigValue<List<? extends String>> weaponAttackDamageEntries;
+    private static ForgeConfigSpec.ConfigValue<List<? extends String>> weaponAttackSpeedEntries;
+    private static ForgeConfigSpec.ConfigValue<List<? extends String>> weaponAttackRangeEntries;
 
     static void createServerConfigs(ForgeConfigSpec.Builder builder) {
         CNConfig.createConfigCategory(builder, " This category holds configs that affect melee combat.", "Melee Combat Config Options", b -> {
@@ -167,9 +172,33 @@ public class MeleeCombatConfigs {
                             For vanilla, this value is false.
                             """)
                     .define("sweeping_edge_on_axes", true);
+            weaponAttackDamageEntries = b
+                    .comment("""
+                            A list of weapon item ids mapped to their corresponding Attack Damage value, in half-hearts.
+                            Format each entry as a namespaced id (ex. for the Wooden Sword, "minecraft:wooden_sword"), follow by a "#", follow by a non-negative decimal value (ex. 5.0).
+                            Note: Make sure you are surrounding each entry with quotation (") marks, and separate each entry by a comma (,).
+                            """)
+                    .defineList("weapon_attack_damage_entries", ConfigUtil.getMapAsStringList(ConfigUtil.DEFAULT_ATTACK_DAMAGE_VALUES), entry -> entry instanceof String);
+            weaponAttackRangeEntries = b
+                    .comment("""
+                            A list of weapon item ids mapped to their corresponding Attack Range value, in blocks.
+                            Format each entry as a namespaced id (ex. for the Wooden Sword,, "minecraft:wooden_sword"), follow by a "#", follow by a non-negative decimal value (ex. 3.0).
+                            Note: Make sure you are surrounding each entry with quotation (") marks, and separate each entry by a comma (,).
+                            """)
+                    .defineList("weapon_attack_range_entries", ConfigUtil.getMapAsStringList(ConfigUtil.DEFAULT_ATTACK_RANGE_VALUES), entry -> entry instanceof String);
+            weaponAttackSpeedEntries = b
+                    .comment("""
+                            A list of weapon item ids mapped to their corresponding Attack Speed value, in attacks per second.
+                            Format each entry as a namespaced id (ex. for the Wooden Sword,, "minecraft:wooden_sword"), follow by a "#", follow by a non-negative decimal value (ex. 3.0).
+                            Note: Make sure you are surrounding each entry with quotation (") marks, and separate each entry by a comma (,).
+                            """)
+                    .defineList("weapon_attack_speed_entries", ConfigUtil.getMapAsStringList(ConfigUtil.DEFAULT_ATTACK_SPEED_VALUES), entry -> entry instanceof String);
             weaponRebalancing = b
                     .comment("""
-                            Toggles the re-balancing of the attack damage, attack speed and attack reach modifiers for vanilla weapons.
+                            Toggles the re-balancing of the Attack Damage, Attack Speed and Attack Range modifiers for specific weapons.
+                            Each weapon's Attack Damage will be their Attack Damage value obtained from the "weapon_attack_damage_entries" config value.
+                            Each weapon's Attack Speed will be their Attack Speed value obtained from the "weapon_attack_speed_entries" config value.
+                            Each weapon's Attack Range will be their Attack Range value obtained from the "weapon_attack_range_entries" config value.
                             For vanilla, this value is false.
                             """)
                     .define("weapon_rebalancing", true);
@@ -266,5 +295,17 @@ public class MeleeCombatConfigs {
 
     public static ForgeConfigSpec.BooleanValue getPlayerAttributeChange() {
         return playerAttributeChange;
+    }
+
+    public static ForgeConfigSpec.ConfigValue<List<? extends String>> getWeaponAttackDamageEntries() {
+        return weaponAttackDamageEntries;
+    }
+
+    public static ForgeConfigSpec.ConfigValue<List<? extends String>> getWeaponAttackRangeEntries() {
+        return weaponAttackRangeEntries;
+    }
+
+    public static ForgeConfigSpec.ConfigValue<List<? extends String>> getWeaponAttackSpeedEntries() {
+        return weaponAttackSpeedEntries;
     }
 }

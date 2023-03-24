@@ -41,6 +41,7 @@ public class GeneralCombatConfigs {
                     .comment("""
                             Adjusts the minimum size an entity's hitbox can be, in blocks, for hitscan detection.
                             An entity's hitbox with a size smaller than this value will be inflated to it during the hitscan.
+                            For vanilla, this value is 0.0.
                             """)
                     .defineInRange("hitbox_min_size_for_hitscan", 0.9D, 0.0D, 2.0D);
             playersAlwaysHurt = b

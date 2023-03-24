@@ -127,7 +127,7 @@ public class CombatUtil {
     public static void newDisableShield(Player victim, LivingEntity attacker){
         int cleavingLevel = attacker.getMainHandItem().getEnchantmentLevel(EnchantmentRegistry.CLEAVING.get());
         int cleavingTicks = ShieldCombatConfigs.getShieldDisableTimeCleaving().get() * cleavingLevel;
-        victim.getCooldowns().addCooldown(victim.getUseItem().getItem(), ShieldCombatValues.getDisableTimeBase(victim.getUseItem()).orElse(DEFAULT_SHIELD_DISABLE_TIME) + cleavingTicks);
+        victim.getCooldowns().addCooldown(victim.getUseItem().getItem(), ShieldCombatValues.getDisableTimeBase(victim.getUseItem().getItem()).orElse(DEFAULT_SHIELD_DISABLE_TIME) + cleavingTicks);
         victim.stopUsingItem();
         victim.level.broadcastEntityEvent(victim, (byte) SHIELD_BREAK_EVENT_ID);
     }
@@ -294,7 +294,7 @@ public class CombatUtil {
                     instance.removeModifier(SHIELD_KNOCKBACK_RESISTANCE_MODIFIER_UUID);
                 }
             } else if(add){
-                ShieldCombatValues.getKnockbackResistance(player.getUseItem()).ifPresent(
+                ShieldCombatValues.getKnockbackResistance(player.getUseItem().getItem()).ifPresent(
                         knockbackResistance -> instance.addTransientModifier(
                                 new AttributeModifier(SHIELD_KNOCKBACK_RESISTANCE_MODIFIER_UUID, SHIELD_KNOCKBACK_RESISTANCE_MODIFIER_NAME, knockbackResistance, AttributeModifier.Operation.ADDITION))
                 );
@@ -388,6 +388,11 @@ public class CombatUtil {
         return Component.literal(" ")
                 .append(Component.translatable("attribute.modifier.equals." + operation.toValue(),
                         ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(value),
-                        Component.translatable(descriptionId).withStyle(ChatFormatting.DARK_GREEN)));
+                        Component.translatable(descriptionId)))
+                .withStyle(ChatFormatting.DARK_GREEN);
+    }
+
+    public static double getBaseAttackSpeed() {
+        return getDefaultAttributeBaseValue(Attributes.ATTACK_SPEED);
     }
 }
