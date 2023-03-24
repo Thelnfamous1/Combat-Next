@@ -73,7 +73,7 @@ public class ConfigUtil {
             V value;
             try{
                 value = valueParser.apply(entry[1]);
-            } catch (NumberFormatException e){
+            } catch (Exception e){
                 CombatNext.LOGGER.error("Invalid formatting for {} entry {}, invalid value {}!", cacheName, entryString, entry[1]);
                 continue;
             }
