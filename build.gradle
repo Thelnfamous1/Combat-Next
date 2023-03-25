@@ -11,6 +11,8 @@ mixin {
     debug.export = true
 }
 
+jarJar.enable()
+
 version = "${minecraft_version}-${mod_version}"
 group = "com.infamous.${modid}" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "${modid}"
@@ -138,6 +140,7 @@ repositories {
             includeGroup "curse.maven"
         }
     }
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -145,6 +148,10 @@ dependencies {
     // that the dep is a ForgeGradle 'patcher' dependency, and its patches will be applied.
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    minecraftLibrary group: "com.github.LlamaLad7", name:"MixinExtras", version: "${mixin_extras_version}"
+    annotationProcessor("com.github.LlamaLad7:MixinExtras:${mixin_extras_version}")
+    jarJar(group: "com.github.LlamaLad7", name:"MixinExtras", version: "[${mixin_extras_version},${mixin_extras_next_version})")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 

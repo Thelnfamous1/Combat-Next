@@ -40,10 +40,7 @@ public class CNNetwork {
 
     public static <MSG> void syncToPlayer(ServerPlayer serverPlayer, MSG packet)
     {
-        if (SYNC_CHANNEL.isRemotePresent(serverPlayer.connection.getConnection()) && !serverPlayer.connection.getConnection().isMemoryConnection())
-        {
-            SYNC_CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer), packet);
-            CombatNext.LOGGER.info("Sending sync packet {} to {}", packet, serverPlayer);
-        }
+        SYNC_CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer), packet);
+        CombatNext.LOGGER.info("Sending sync packet {} to {}", packet, serverPlayer);
     }
 }

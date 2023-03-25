@@ -4,6 +4,8 @@ import com.infamous.combat_next.config.GeneralCombatConfigs;
 import com.infamous.combat_next.config.MeleeCombatConfigs;
 import com.infamous.combat_next.config.ShieldCombatConfigs;
 import com.infamous.combat_next.util.CombatUtil;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.WrapWithCondition;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -36,7 +38,18 @@ public abstract class PlayerMixin extends LivingEntity{
         }
     }
 
+    /*
     @ModifyConstant(method = "hurt", constant = @Constant(floatValue = 0.0F, ordinal = 1))
+    private float bypassZeroDamage(float constant, DamageSource source, float damage){
+        if(GeneralCombatConfigs.getPlayersAlwaysHurt().get()){
+            return Float.MIN_VALUE; // impossible to achieve, so guaranteed to fail
+        } else{
+            return constant;
+        }
+    }
+     */
+
+    @ModifyExpressionValue(method = "hurt", at = @At(value = "CONSTANT", args = "floatValue=0.0F", ordinal = 1))
     private float bypassZeroDamage(float constant, DamageSource source, float damage){
         if(GeneralCombatConfigs.getPlayersAlwaysHurt().get()){
             return Float.MIN_VALUE; // impossible to achieve, so guaranteed to fail
@@ -61,11 +74,18 @@ public abstract class PlayerMixin extends LivingEntity{
         return CombatUtil.recalculateDamageBonus(this.getMainHandItem(), original, target);
     }
 
+    /*
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;resetAttackStrengthTicker()V"))
     private void dontResetTickerIfWeaponSwapped(Player instance){
         if(!MeleeCombatConfigs.getAttackCooldownWhenSwitchingPrevented().get()){
             instance.resetAttackStrengthTicker();
         }
+    }
+     */
+
+    @WrapWithCondition(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;resetAttackStrengthTicker()V"))
+    private boolean dontResetTickerIfWeaponSwapped(Player instance){
+        return !MeleeCombatConfigs.getAttackCooldownWhenSwitchingPrevented().get();
     }
 
     @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 2), ordinal = 1)

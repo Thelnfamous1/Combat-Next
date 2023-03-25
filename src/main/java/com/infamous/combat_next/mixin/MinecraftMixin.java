@@ -5,6 +5,8 @@ import com.infamous.combat_next.config.MeleeCombatConfigs;
 import com.infamous.combat_next.config.ShieldCombatConfigs;
 import com.infamous.combat_next.util.CombatUtil;
 import com.infamous.combat_next.util.MinecraftCombat;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.WrapWithCondition;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -16,7 +18,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -32,9 +33,16 @@ public abstract class MinecraftMixin implements MinecraftCombat {
     @Shadow @Final public Options options;
     private int leftClickDelay;
 
+    /*
     @Redirect(method = "startAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;resetAttackStrengthTicker()V", ordinal = 0))
     private void dontResetTickerIfMissed(LocalPlayer instance){
         // NO-OP
+    }
+     */
+
+    @WrapWithCondition(method = "startAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;resetAttackStrengthTicker()V", ordinal = 0))
+    private boolean dontResetTickerIfMissed(LocalPlayer instance){
+        return false;
     }
 
     @Inject(method = "continueAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;stopDestroyBlock()V"), cancellable = true)
@@ -63,9 +71,16 @@ public abstract class MinecraftMixin implements MinecraftCombat {
         return original;
     }
 
+    /*
     @Redirect(method = "continueAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z"))
     private boolean redirectIsUsingItem(LocalPlayer instance){
         return instance.isUsingItem() && (!ClientCombatUtil.isCrouchShielding(instance) || !ShieldCombatConfigs.getShieldAttackWhileCrouchShielding().get());
+    }
+     */
+
+    @ModifyExpressionValue(method = "continueAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z"))
+    private boolean modifyIsUsingItem(boolean isUsingItem){
+        return isUsingItem && (!ClientCombatUtil.isCrouchShielding(this.player) || !ShieldCombatConfigs.getShieldAttackWhileCrouchShielding().get());
     }
 
     @Override

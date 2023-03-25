@@ -1,6 +1,7 @@
 package com.infamous.combat_next.mixin;
 
 import com.infamous.combat_next.config.RangedCombatConfigs;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.BowItem;
@@ -15,8 +16,20 @@ public abstract class BowItemMixin {
 
     @Shadow public abstract int getUseDuration(ItemStack p_40680_);
 
+    /*
     @ModifyConstant(method = "releaseUsing", constant = @Constant(floatValue = 1.0F, ordinal = 0))
     private float getInaccuracy(float original, ItemStack stack, Level level, LivingEntity livingEntity, int useItemRemainingTicks){
+        if(RangedCombatConfigs.getBowOverdrawing().get()){
+            int useTicks = this.getUseDuration(stack) - useItemRemainingTicks;
+            return useTicks <= RangedCombatConfigs.getBowTicksBeforeOverdrawn().get() ? 0.0F : RangedCombatConfigs.getBowOverdrawnArrowInaccuracy().get().floatValue();
+        } else{
+            return original;
+        }
+    }
+     */
+
+    @ModifyExpressionValue(method = "releaseUsing", at = @At(value = "CONSTANT", args = "floatValue=1.0F", ordinal = 0))
+    private float modifyInaccuracy(float original, ItemStack stack, Level level, LivingEntity livingEntity, int useItemRemainingTicks){
         if(RangedCombatConfigs.getBowOverdrawing().get()){
             int useTicks = this.getUseDuration(stack) - useItemRemainingTicks;
             return useTicks <= RangedCombatConfigs.getBowTicksBeforeOverdrawn().get() ? 0.0F : RangedCombatConfigs.getBowOverdrawnArrowInaccuracy().get().floatValue();

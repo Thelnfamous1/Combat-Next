@@ -1,13 +1,16 @@
 {
   "required": true,
+  "plugin": "com.infamous.combat_next.mixin.CNMixinConfigPlugin",
   "package": "com.infamous.combat_next.mixin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "combat_next.refmap.json",
   "mixins": [
     "ArrowMixin",
     "AttackDamageMobEffectMixin",
-    "AxeItemMixin",
     "BowItemMixin",
+    "DiggerItemMixin",
+    "EnchantmentMixin",
+    "EntityMixin",
     "FoodDataMixin",
     "ItemAccessor",
     "ItemStackMixin",

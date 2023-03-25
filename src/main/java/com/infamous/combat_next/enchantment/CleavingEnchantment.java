@@ -1,10 +1,12 @@
 package com.infamous.combat_next.enchantment;
 
 import com.infamous.combat_next.CombatNext;
+import com.infamous.combat_next.util.CombatUtil;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.MobType;
 import net.minecraft.world.item.AxeItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.DamageEnchantment;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
@@ -37,6 +39,11 @@ public class CleavingEnchantment extends Enchantment {
     @Override
     public float getDamageBonus(int level, MobType type) {
         return 1.0F + level;
+    }
+
+    @Override
+    public boolean canEnchant(ItemStack stack) {
+        return super.canEnchant(stack) || CombatUtil.isAxe(stack);
     }
 
     @Override

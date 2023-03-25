@@ -8,12 +8,20 @@ public class MagicCombatConfigs {
     private static ForgeConfigSpec.IntValue potionMaxStackSize;
     private static ForgeConfigSpec.DoubleValue strengthEffectModifierValue;
     private static ForgeConfigSpec.BooleanValue strengthEffectChange;
+    private static ForgeConfigSpec.BooleanValue arrowInstantEffectChange;
 
     static void createServerConfigs(ForgeConfigSpec.Builder builder) {
         CNConfig.createConfigCategory(builder, " This category holds configs that affect magic combat.", "Magic Combat Config Options", b -> {
+            arrowInstantEffectChange = b
+                    .comment("""
+                            Toggles the change of instant effects on tipped arrows being scaled by the "arrow_instant_effect_scale" config value.
+                            For vanilla, this value is false.
+                            """)
+                    .define("arrow_instant_effect_change", true);
             arrowInstantEffectScale = b
                     .comment("""
                             Adjusts the amount an instant effect is scaled by when applied from a tipped arrow.
+                            Note: The "arrow_instant_effect_change" config value must be set to true.
                             For vanilla, non-instant effects are scaled by 1/8 (0.375).
                             """)
                     .defineInRange("arrow_instant_effect_scale", 0.375D, 0.0D, 1.0D);
@@ -63,5 +71,9 @@ public class MagicCombatConfigs {
 
     public static ForgeConfigSpec.BooleanValue getStrengthEffectChange() {
         return strengthEffectChange;
+    }
+
+    public static ForgeConfigSpec.BooleanValue getArrowInstantEffectChange() {
+        return arrowInstantEffectChange;
     }
 }

@@ -4,6 +4,7 @@ import com.infamous.combat_next.config.BugFixConfigs;
 import com.infamous.combat_next.config.GeneralCombatConfigs;
 import com.infamous.combat_next.config.ShieldCombatConfigs;
 import com.infamous.combat_next.config.ShieldCombatValues;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -13,9 +14,7 @@ import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Optional;
@@ -31,6 +30,7 @@ public abstract class LivingEntityMixin extends Entity{
         super(type, level);
     }
 
+    /*
     @ModifyConstant(method = "isBlocking", constant = @Constant(intValue = 5, ordinal = 0))
     int getShieldWarmUpDelay(int vanilla){
         if(ShieldCombatConfigs.getShieldWarmUpDelayChange().get()){
@@ -38,9 +38,31 @@ public abstract class LivingEntityMixin extends Entity{
         }
         return vanilla;
     }
+     */
 
+    @ModifyExpressionValue(method = "isBlocking", at = @At(value = "CONSTANT", args = "intValue=5", ordinal = 0))
+    int getShieldWarmUpDelay(int vanilla){
+        if(ShieldCombatConfigs.getShieldWarmUpDelayChange().get()){
+            return ShieldCombatValues.getWarmUpDelay(this.getUseItem().getItem()).orElse(vanilla);
+        }
+        return vanilla;
+    }
+
+    /*
     @ModifyConstant(method = "isDamageSourceBlocked", constant = @Constant(doubleValue = 0.0D, ordinal = 1))
     double getMaxDotProduct(double vanilla){
+        if(ShieldCombatConfigs.getShieldProtectionArcChange().get()){
+            Optional<Float> protectionArc = ShieldCombatValues.getProtectionArc(this.getUseItem().getItem());
+            if(protectionArc.isPresent()){
+                return Mth.cos(protectionArc.get() * (Mth.PI / 360.0F)) * -1.0D;
+            }
+        }
+        return vanilla;
+    }
+     */
+
+    @ModifyExpressionValue(method = "isDamageSourceBlocked", at = @At(value = "CONSTANT", args = "doubleValue=0.0D", ordinal = 1))
+    double modifyMaxDotProduct(double vanilla){
         if(ShieldCombatConfigs.getShieldProtectionArcChange().get()){
             Optional<Float> protectionArc = ShieldCombatValues.getProtectionArc(this.getUseItem().getItem());
             if(protectionArc.isPresent()){
@@ -67,8 +89,15 @@ public abstract class LivingEntityMixin extends Entity{
         }
     }
 
+    /*
     @ModifyConstant(method = "hurt", constant = @Constant(floatValue = 10.0F, ordinal = 0))
     private float getTicksLeftBeforeDamageable(float constant){
+        return GeneralCombatConfigs.getIFramesLeftBeforeDamageable().get();
+    }
+     */
+
+    @ModifyExpressionValue(method = "hurt", at = @At(value = "CONSTANT", args = "floatValue=10.0F", ordinal = 0))
+    private float modifyTicksLeftBeforeDamageable(float constant){
         return GeneralCombatConfigs.getIFramesLeftBeforeDamageable().get();
     }
 

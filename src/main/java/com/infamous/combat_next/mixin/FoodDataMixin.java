@@ -1,6 +1,7 @@
 package com.infamous.combat_next.mixin;
 
 import com.infamous.combat_next.config.HungerConfigs;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,6 +17,7 @@ public class FoodDataMixin {
 
     @Shadow private int tickTimer;
 
+    /*
     @ModifyConstant(method = "tick", constant = @Constant(intValue = 20, ordinal = 0))
     private int getFoodLevelForFastHealing(int original){
         if(HungerConfigs.getNaturalHealingFastHealingPrevented().get()){
@@ -24,13 +26,37 @@ public class FoodDataMixin {
             return original;
         }
     }
+     */
 
+    @ModifyExpressionValue(method = "tick", at = @At(value = "CONSTANT", args = "intValue=20", ordinal = 0))
+    private int getFoodLevelForFastHealing(int original){
+        if(HungerConfigs.getNaturalHealingFastHealingPrevented().get()){
+            return this.foodLevel + 1; // since "this.foodLevel == this.foodLevel + 1" will fail, no fast healing
+        } else{
+            return original;
+        }
+    }
+
+    /*
     @ModifyConstant(method = "tick", constant = @Constant(intValue = 18, ordinal = 0))
     private int getFoodLevelForNaturalHealing(int constant){
         return HungerConfigs.getNaturalHealingMinFoodLevel().get();
     }
+     */
 
+    @ModifyExpressionValue(method = "tick", at = @At(value = "CONSTANT", args = "intValue=18", ordinal = 0))
+    private int getFoodLevelForNaturalHealing(int constant){
+        return HungerConfigs.getNaturalHealingMinFoodLevel().get();
+    }
+
+    /*
     @ModifyConstant(method = "tick", constant = @Constant(intValue = 80, ordinal = 0))
+    private int getTicksBeforeNaturalHealing(int constant){
+        return HungerConfigs.getNaturalHealingTicksBeforeHeal().get();
+    }
+     */
+
+    @ModifyExpressionValue(method = "tick", at = @At(value = "CONSTANT", args = "intValue=80", ordinal = 0))
     private int getTicksBeforeNaturalHealing(int constant){
         return HungerConfigs.getNaturalHealingTicksBeforeHeal().get();
     }

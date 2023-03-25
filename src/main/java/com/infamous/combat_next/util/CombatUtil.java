@@ -33,6 +33,7 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.entity.projectile.ThrownTrident;
+import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
@@ -45,6 +46,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.ToolActions;
 
 import java.util.Optional;
@@ -394,5 +396,9 @@ public class CombatUtil {
 
     public static double getBaseAttackSpeed() {
         return getDefaultAttributeBaseValue(Attributes.ATTACK_SPEED);
+    }
+
+    public static boolean isAxe(ItemStack stack) {
+        return stack.getItem() instanceof AxeItem || stack.is(Tags.Items.TOOLS_AXES);
     }
 }
