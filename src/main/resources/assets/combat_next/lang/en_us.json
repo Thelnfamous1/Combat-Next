@@ -1,4 +1,5 @@
 {
   "enchantment.combat_next.cleaving": "Cleaving",
+  "enchantment.combat_next.cleaving.desc": "Increases the damage of an axe and its shield disabling time.",
   "item.minecraft.shield.shield_strength": "Shield Strength"
 }
