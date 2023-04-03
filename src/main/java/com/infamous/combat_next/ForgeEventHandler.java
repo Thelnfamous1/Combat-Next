@@ -64,8 +64,8 @@ public class ForgeEventHandler {
         DamageSource source = event.getSource();
         LivingEntity victim = event.getEntity();
 
-        if(source.isProjectile() && RangedCombatConfigs.getProjectileNoIFrames().get()){
-            victim.invulnerableTime = 0;
+        if(source.isProjectile() && CombatUtil.isOnMaxInvulnerableTime(victim)){
+            victim.invulnerableTime = RangedCombatConfigs.getProjectileIFrames().get();
         }
     }
 
@@ -105,8 +105,10 @@ public class ForgeEventHandler {
     static void onLivingHurt(LivingHurtEvent event){
         if(!event.isCanceled()){
             LivingEntity victim = event.getEntity();
-            if(event.getSource().getDirectEntity() instanceof Player player){
-                victim.invulnerableTime = (int) player.getCurrentItemAttackStrengthDelay();
+            if(event.getSource().getDirectEntity() instanceof Player player
+                    && CombatUtil.isOnMaxInvulnerableTime(victim)
+                    && MeleeCombatConfigs.getiFramesByWeaponAttackCooldown().get()){
+                victim.invulnerableTime = Math.min((int) player.getCurrentItemAttackStrengthDelay(), victim.invulnerableDuration);
             }
         }
     }

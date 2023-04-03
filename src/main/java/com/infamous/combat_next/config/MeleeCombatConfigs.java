@@ -31,6 +31,7 @@ public class MeleeCombatConfigs {
     private static ForgeConfigSpec.ConfigValue<List<? extends String>> weaponAttackDamageEntries;
     private static ForgeConfigSpec.ConfigValue<List<? extends String>> weaponAttackSpeedEntries;
     private static ForgeConfigSpec.ConfigValue<List<? extends String>> weaponAttackRangeEntries;
+    private static ForgeConfigSpec.BooleanValue iFramesByWeaponAttackCooldown;
 
     static void createServerConfigs(ForgeConfigSpec.Builder builder) {
         CNConfig.createConfigCategory(builder, " This category holds configs that affect melee combat.", "Melee Combat Config Options", b -> {
@@ -127,6 +128,13 @@ public class MeleeCombatConfigs {
                             For vanilla, this value is false.
                             """)
                     .define("enchantment_damage_scales_with_modifiers", true);
+            iFramesByWeaponAttackCooldown = b
+                    .comment("""
+                            Toggles the number of a target's i-frames (invulnerable frames) given when attacked being based on the attack cooldown of the attacker's weapon.
+                            A faster weapon, with a lower attack cooldown, means the target will have less i-frames given.
+                            For vanilla, this value is false.
+                            """)
+                    .define("i_frames_by_weapon_attack_cooldown", true);
             playerAttackDamageBaseChange = b
                     .comment("""
                             Toggles the increase of a player's Attack Damage base value to 2 from 1 (in half-hearts).
@@ -307,5 +315,9 @@ public class MeleeCombatConfigs {
 
     public static ForgeConfigSpec.ConfigValue<List<? extends String>> getWeaponAttackSpeedEntries() {
         return weaponAttackSpeedEntries;
+    }
+
+    public static ForgeConfigSpec.BooleanValue getiFramesByWeaponAttackCooldown() {
+        return iFramesByWeaponAttackCooldown;
     }
 }

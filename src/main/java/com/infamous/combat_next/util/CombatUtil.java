@@ -48,6 +48,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.ToolActions;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -63,6 +64,9 @@ public class CombatUtil {
     private static final float IMPALING_DAMAGE_SCALE = 2.5F;
     private static final int SHIELD_BREAK_EVENT_ID = 30;
     public static final int DEFAULT_SHIELD_DISABLE_TIME = 32;
+
+    @Nullable
+    private static AttributeModifier ORIGINAL_STRENGTH_MODIFIER;
 
     private static void registerTridentDispenseBehavior(){
         if(RangedCombatConfigs.getTridentShootFromDispenser().get()){
@@ -83,10 +87,16 @@ public class CombatUtil {
 
     private static void modifyStrengthEffect(){
         if(MagicCombatConfigs.getStrengthEffectChange().get()){
+            ORIGINAL_STRENGTH_MODIFIER = new AttributeModifier(UUID.fromString("648D7064-6A60-4F59-8ABE-C2C23A6DD7A9"), MobEffects.DAMAGE_BOOST.getDescriptionId(), 0.0D, AttributeModifier.Operation.ADDITION);
             MobEffects.DAMAGE_BOOST.addAttributeModifier(Attributes.ATTACK_DAMAGE, DAMAGE_BOOST_MODIFIER_UUID, MagicCombatConfigs.getStrengthEffectModifierValue().get(), AttributeModifier.Operation.MULTIPLY_TOTAL);
             CombatNext.LOGGER.info("Modified MobEffect {} to have an AttributeModifier for Attribute {} with UUID {}, value of {}, and Operation of {}",
-                    "minecraft:strength", getTranslation(Attributes.ATTACK_KNOCKBACK.getDescriptionId()), DAMAGE_BOOST_MODIFIER_UUID, MagicCombatConfigs.getStrengthEffectModifierValue().get(),
+                    "minecraft:strength", getTranslation(Attributes.ATTACK_DAMAGE.getDescriptionId()), DAMAGE_BOOST_MODIFIER_UUID, MagicCombatConfigs.getStrengthEffectModifierValue().get(),
                     AttributeModifier.Operation.MULTIPLY_TOTAL);
+        } else{
+            if(ORIGINAL_STRENGTH_MODIFIER != null){
+                CombatNext.LOGGER.info("Reset MobEffect {} to have its original Attribute Modifier {}!", "minecraft:strength", ORIGINAL_STRENGTH_MODIFIER);
+                MobEffects.DAMAGE_BOOST.getAttributeModifiers().put(Attributes.ATTACK_DAMAGE, ORIGINAL_STRENGTH_MODIFIER);
+            }
         }
     }
 
@@ -400,5 +410,9 @@ public class CombatUtil {
 
     public static boolean isAxe(ItemStack stack) {
         return stack.getItem() instanceof AxeItem || stack.is(Tags.Items.TOOLS_AXES);
+    }
+
+    public static boolean isOnMaxInvulnerableTime(LivingEntity victim) {
+        return victim.invulnerableTime == victim.invulnerableDuration;
     }
 }

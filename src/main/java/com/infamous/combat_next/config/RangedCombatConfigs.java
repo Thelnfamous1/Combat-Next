@@ -6,11 +6,11 @@ public class RangedCombatConfigs {
     private static ForgeConfigSpec.DoubleValue bowOverdrawnArrowInaccuracy;
     private static ForgeConfigSpec.IntValue bowTicksBeforeOverdrawn;
     private static ForgeConfigSpec.IntValue snowballMaxStackSize;
-    private static ForgeConfigSpec.BooleanValue projectileNoIFrames;
     private static ForgeConfigSpec.BooleanValue bowOverdrawing;
     private static ForgeConfigSpec.BooleanValue tridentLoyaltyReturnFromVoid;
     private static ForgeConfigSpec.BooleanValue tridentShootFromDispenser;
     private static ForgeConfigSpec.IntValue throwableItemCooldown;
+    private static ForgeConfigSpec.IntValue projectileIFrames;
 
     static void createServerConfigs(ForgeConfigSpec.Builder builder) {
         CNConfig.createConfigCategory(builder, " This category holds configs that affect ranged combat.", "Ranged Combat Config Options", b -> {
@@ -33,12 +33,13 @@ public class RangedCombatConfigs {
                             Note: The "bow_overdrawing" config value must be set to true.
                             """)
                     .defineInRange("bow_ticks_before_overdrawn", 60, 0, 200);
-            projectileNoIFrames = b
+            projectileIFrames = b
                     .comment("""
-                            Toggles projectiles no longer giving the target i-frames (invulnerable frames).
-                            For vanilla, this value is false.
+                            Toggles the number of i-frames (invulnerable frames) given to a target when being struck by a projectile.
+                            Setting the value to 0 allows for things like Multishot arrows being able to damage the same target.
+                            For vanilla, this value is 20.
                             """)
-                    .define("projectile_no_i_frames", true);
+                    .defineInRange("projectile_i_frames", 0, 0, 20);
             throwableItemCooldown = b
                     .comment("""
                             Adjusts the amount of ticks (1/20 seconds) a throwable item (eggs, snowballs, etc) is put on cooldown for after being thrown.
@@ -78,8 +79,8 @@ public class RangedCombatConfigs {
         return snowballMaxStackSize;
     }
 
-    public static ForgeConfigSpec.BooleanValue getProjectileNoIFrames() {
-        return projectileNoIFrames;
+    public static ForgeConfigSpec.IntValue getProjectileIFrames() {
+        return projectileIFrames;
     }
 
     public static ForgeConfigSpec.BooleanValue getBowOverdrawing() {
