@@ -18,6 +18,8 @@ import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -116,7 +118,7 @@ public class CombatUtil {
     }
 
     public static boolean canInterruptConsumption(DamageSource source){
-        return source.getDirectEntity() instanceof LivingEntity || (source.isProjectile() && source.getEntity() instanceof LivingEntity);
+        return source.getDirectEntity() instanceof LivingEntity || (source.is(DamageTypeTags.IS_PROJECTILE) && source.getEntity() instanceof LivingEntity);
     }
 
     public static float recalculateDamageBonus(ItemStack stack, float original, Entity target){
@@ -191,9 +193,10 @@ public class CombatUtil {
                 float sweepDamage = 1.0F + EnchantmentHelper.getSweepingDamageRatio(player) * attackDamage;
 
                 for(LivingEntity sweepTarget : player.level.getEntitiesOfClass(LivingEntity.class, getSweepHitBox(player, player.getItemInHand(InteractionHand.MAIN_HAND)))) {
-                    if (sweepTarget != player && !player.isAlliedTo(sweepTarget) && (!(sweepTarget instanceof ArmorStand armorStand) || !armorStand.isMarker()) && player.canHit(sweepTarget, 0)) { // Original check was dist < 3, range is 3, so vanilla used padding=0
+                    double entityReachSq = Mth.square(player.getEntityReach()); // Use entity reach instead of constant 9.0. Vanilla uses bottom center-to-center checks here, so don't update this to use canReach, since it uses closest-corner checks.
+                    if (sweepTarget != player && !player.isAlliedTo(sweepTarget) && (!(sweepTarget instanceof ArmorStand armorStand) || !armorStand.isMarker()) && player.distanceToSqr(sweepTarget) < entityReachSq) { // Original check was dist < 3, range is 3, so vanilla used padding=0
                         sweepTarget.knockback(0.4D, Mth.sin(player.getYRot() * (Mth.PI / 180F)), -Mth.cos(player.getYRot() * Mth.PI / 180F));
-                        sweepTarget.hurt(DamageSource.playerAttack(player), sweepDamage);
+                        sweepTarget.hurt(player.damageSources().playerAttack(player), sweepDamage);
                     }
                 }
 
@@ -246,10 +249,10 @@ public class CombatUtil {
     }
 
     public static Optional<EntityHitResult> getEntityHit(Player player) {
-        double blockReach = player.getReachDistance();
+        double blockReach = player.getBlockReach();
         Vec3 from = player.getEyePosition(1.0F);
         double reach;
-        double entityReach = player.getAttackRange();
+        double entityReach = player.getEntityReach();
         blockReach = reach = Math.max(blockReach, entityReach); // Pick entities with the max of the reach distance and attack range.
 
         double reachSqr = Mth.square(reach);
@@ -283,7 +286,7 @@ public class CombatUtil {
     }
 
     public static void handleBonusAttackReach(Player player, boolean add) {
-        AttributeInstance instance = player.getAttribute(ForgeMod.ATTACK_RANGE.get());
+        AttributeInstance instance = player.getAttribute(ForgeMod.ENTITY_REACH.get());
         if (instance != null) {
             AttributeModifier modifier = instance.getModifier(BONUS_REACH_MODIFIER_UUID);
             if(modifier != null){
@@ -365,7 +368,7 @@ public class CombatUtil {
     }
 
     public static double getBaseAttackRange() {
-        double attackRange = getDefaultAttributeBaseValue(ForgeMod.ATTACK_RANGE.get());
+        double attackRange = getDefaultAttributeBaseValue(ForgeMod.ENTITY_REACH.get());
         attackRange = MeleeCombatConfigs.getPlayerAttackReachBaseChange().get() ? attackRange - 0.5D : attackRange;
         return attackRange;
     }
@@ -409,7 +412,7 @@ public class CombatUtil {
     }
 
     public static boolean isAxe(ItemStack stack) {
-        return stack.getItem() instanceof AxeItem || stack.is(Tags.Items.TOOLS_AXES);
+        return stack.getItem() instanceof AxeItem || stack.is(Tags.Items.TOOLS_AXES) || stack.is(ItemTags.AXES);
     }
 
     public static boolean isOnMaxInvulnerableTime(LivingEntity victim) {

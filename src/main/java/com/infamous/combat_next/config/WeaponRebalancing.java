@@ -36,8 +36,8 @@ public class WeaponRebalancing {
             event.addModifier(Attributes.ATTACK_SPEED, getAttackSpeed(item, attackSpeed - CombatUtil.getBaseAttackSpeed()));
         });
         MeleeCombatValues.getAttackRange(item).ifPresent(attackRange -> {
-            event.removeAttribute(ForgeMod.ATTACK_RANGE.get());
-            event.addModifier(ForgeMod.ATTACK_RANGE.get(), getAttackRange(item, attackRange - CombatUtil.getBaseAttackRange()));
+            event.removeAttribute(ForgeMod.ENTITY_REACH.get());
+            event.addModifier(ForgeMod.ENTITY_REACH.get(), getAttackRange(item, attackRange - CombatUtil.getBaseAttackRange()));
         });
     }
 
@@ -55,7 +55,7 @@ public class WeaponRebalancing {
     }
 
     private static AttributeModifier getAttackRange(Item item, double defaultValue) {
-        return getModifier(item, ForgeMod.ATTACK_RANGE.get(), ITEM_ATTACK_RANGE_MODIFIER_UUID, ATTACK_RANGE_MODIFIER_NAME, defaultValue, AttributeModifier.Operation.ADDITION);
+        return getModifier(item, ForgeMod.ENTITY_REACH.get(), ITEM_ATTACK_RANGE_MODIFIER_UUID, ATTACK_RANGE_MODIFIER_NAME, defaultValue, AttributeModifier.Operation.ADDITION);
     }
 
     private static AttributeModifier getAttackSpeed(Item item, double defaultValue) {
@@ -80,7 +80,7 @@ public class WeaponRebalancing {
                 String toolTipString = contents.toString();
 
                 if(i == modifierToolTipIndex){
-                    if(toolTipString.contains(ForgeMod.ATTACK_RANGE.get().getDescriptionId())){
+                    if(toolTipString.contains(ForgeMod.ENTITY_REACH.get().getDescriptionId())){
                         if(modifierIterator.hasNext()){
                             AttributeModifier modifier = modifierIterator.next();
                             if(modifier.getId() == ITEM_ATTACK_RANGE_MODIFIER_UUID){
@@ -96,7 +96,7 @@ public class WeaponRebalancing {
                         if(!toolTipString.contains(slot.getName())) continue;
 
                         modifierToolTipIndex = i + 1;
-                        modifierIterator = stack.getAttributeModifiers(slot).get(ForgeMod.ATTACK_RANGE.get()).iterator();
+                        modifierIterator = stack.getAttributeModifiers(slot).get(ForgeMod.ENTITY_REACH.get()).iterator();
                         break;
                     }
                 }
@@ -108,12 +108,12 @@ public class WeaponRebalancing {
         return Component.literal(" ")
                 .append(Component.translatable("attribute.modifier.equals." + attackRangeModifier.getOperation().toValue(),
                         ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(getTotalAttackRange(attackRangeModifier, player)),
-                        Component.translatable(ForgeMod.ATTACK_RANGE.get().getDescriptionId())).withStyle(ChatFormatting.DARK_GREEN));
+                        Component.translatable(ForgeMod.ENTITY_REACH.get().getDescriptionId())).withStyle(ChatFormatting.DARK_GREEN));
     }
 
     private static double getTotalAttackRange(AttributeModifier modifier, Player player){
         double amount = modifier.getAmount();
-        amount += player.getAttributeBaseValue(ForgeMod.ATTACK_RANGE.get());
+        amount += player.getAttributeBaseValue(ForgeMod.ENTITY_REACH.get());
         return amount;
     }
 

@@ -13,7 +13,7 @@ public enum CNGuiOverlay {
         if (!gui.getMinecraft().options.hideGui)
         {
             gui.setupOverlayRenderState(true, false);
-            gui.setBlitOffset(-90);
+            //gui.setBlitOffset(-90);
 
             //RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             //RenderSystem.setShader(GameRenderer::getPositionTexShader);

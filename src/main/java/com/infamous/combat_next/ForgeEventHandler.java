@@ -10,6 +10,7 @@ import com.infamous.combat_next.util.CombatUtil;
 import com.infamous.combat_next.config.WeaponRebalancing;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -64,7 +65,7 @@ public class ForgeEventHandler {
         DamageSource source = event.getSource();
         LivingEntity victim = event.getEntity();
 
-        if(source.isProjectile() && CombatUtil.isOnMaxInvulnerableTime(victim)){
+        if(source.is(DamageTypeTags.IS_PROJECTILE) && CombatUtil.isOnMaxInvulnerableTime(victim)){
             victim.invulnerableTime = RangedCombatConfigs.getProjectileIFrames().get();
         }
     }
@@ -78,7 +79,7 @@ public class ForgeEventHandler {
             DamageSource source = event.getDamageSource();
 
             if(CombatUtil.isShield(stack) && ShieldCombatConfigs.getShieldReduceDamageBlocked().get()){
-                if(!source.isProjectile() && !source.isExplosion()){
+                if(!source.is(DamageTypeTags.IS_PROJECTILE) && !source.is(DamageTypeTags.IS_EXPLOSION)){
                     ShieldCombatValues.getShieldStrength(stack.getItem()).ifPresent(
                             shieldStrength -> event.setBlockedDamage(Mth.clamp(shieldStrength, 0, blockedDamage))
                     );
@@ -219,7 +220,7 @@ public class ForgeEventHandler {
         if(MeleeCombatConfigs.getPlayerAttributeChange().get()){
             if(!playedBefore || !MeleeCombatConfigs.getPlayerAttributeChangeFirstLogin().get()){
                 CombatUtil.adjustAttributeBaseValue(player, Attributes.ATTACK_DAMAGE, CombatUtil.getBaseAttackDamage());
-                CombatUtil.adjustAttributeBaseValue(player, ForgeMod.ATTACK_RANGE.get(), CombatUtil.getBaseAttackRange());
+                CombatUtil.adjustAttributeBaseValue(player, ForgeMod.ENTITY_REACH.get(), CombatUtil.getBaseAttackRange());
             }
         }
     }
@@ -229,7 +230,7 @@ public class ForgeEventHandler {
         if(MeleeCombatConfigs.getPlayerAttributeChange().get()){
             ServerPlayer player = (ServerPlayer) event.getEntity();
             CombatUtil.adjustAttributeBaseValue(player, Attributes.ATTACK_DAMAGE, CombatUtil.getBaseAttackDamage());
-            CombatUtil.adjustAttributeBaseValue(player, ForgeMod.ATTACK_RANGE.get(), CombatUtil.getBaseAttackRange());
+            CombatUtil.adjustAttributeBaseValue(player, ForgeMod.ENTITY_REACH.get(), CombatUtil.getBaseAttackRange());
         }
     }
 

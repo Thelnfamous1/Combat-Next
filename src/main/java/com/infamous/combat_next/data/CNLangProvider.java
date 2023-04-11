@@ -9,7 +9,7 @@ import net.minecraftforge.common.data.LanguageProvider;
 public class CNLangProvider extends LanguageProvider {
 
     public CNLangProvider(DataGenerator gen) {
-        super(gen, CombatNext.MODID, "en_us");
+        super(gen.getPackOutput(), CombatNext.MODID, "en_us");
     }
 
     @Override
