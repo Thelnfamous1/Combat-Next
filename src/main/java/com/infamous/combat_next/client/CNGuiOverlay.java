@@ -9,7 +9,7 @@ import net.minecraftforge.client.gui.overlay.NamedGuiOverlay;
 import org.jetbrains.annotations.NotNull;
 
 public enum CNGuiOverlay {
-    SHIELD_INDICATOR_CROSSHAIR("shield_indicator_crosshair", (gui, poseStack, partialTick, screenWidth, screenHeight) -> {
+    SHIELD_INDICATOR_CROSSHAIR("shield_indicator_crosshair", (gui, graphics, partialTick, screenWidth, screenHeight) -> {
         if (!gui.getMinecraft().options.hideGui)
         {
             gui.setupOverlayRenderState(true, false);
@@ -19,17 +19,17 @@ public enum CNGuiOverlay {
             //RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderTexture(0, ShieldIndicatorRenderer.GUI_ICONS_LOCATION);
             //RenderSystem.enableBlend();
-            ShieldIndicatorRenderer.renderCrosshair(gui, poseStack, screenWidth, screenHeight);
+            ShieldIndicatorRenderer.renderCrosshair(gui, graphics, screenWidth, screenHeight);
             RenderSystem.disableBlend();
         }
     }),
-    SHIELD_INDICATOR_HOTBAR("shield_indicator_hotbar", (gui, poseStack, partialTick, screenWidth, screenHeight) -> {
+    SHIELD_INDICATOR_HOTBAR("shield_indicator_hotbar", (gui, graphics, partialTick, screenWidth, screenHeight) -> {
         if (!gui.getMinecraft().options.hideGui)
         {
             gui.setupOverlayRenderState(true, false);
             if (gui.getMinecraft().gameMode.getPlayerMode() != GameType.SPECTATOR)
             {
-                ShieldIndicatorRenderer.renderHotbar(gui, poseStack, screenWidth, screenHeight);
+                ShieldIndicatorRenderer.renderHotbar(gui, graphics, screenWidth, screenHeight);
             }
         }
     });

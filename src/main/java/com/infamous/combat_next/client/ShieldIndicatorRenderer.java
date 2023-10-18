@@ -5,10 +5,9 @@ import com.infamous.combat_next.config.ShieldCombatConfigs;
 import com.infamous.combat_next.util.CombatUtil;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
@@ -55,7 +54,7 @@ public class ShieldIndicatorRenderer {
     public static final int CROSSBAR_SHIELD_INDICATOR_DISABLED_Y = 112;
     public static final int CROSSHAIR_HEIGHT = 15;
 
-    public static void renderCrosshair(ForgeGui gui, PoseStack poseStack, int screenWidth, int screenHeight) {
+    public static void renderCrosshair(ForgeGui gui, GuiGraphics graphics, int screenWidth, int screenHeight) {
         Options options = Minecraft.getInstance().options;
         if (options.getCameraType().isFirstPerson()) {
             //noinspection ConstantConditions
@@ -71,12 +70,12 @@ public class ShieldIndicatorRenderer {
                             int y = screenHeight / 2 + ShieldCombatConfigs.getShieldIndicatorCrosshairOffsetY().get();
                             int x = screenWidth / 2 - ShieldCombatConfigs.getShieldIndicatorCrosshairOffsetX().get();
                             if (player.isBlocking()) {
-                                GuiComponent.blit(poseStack,
+                                graphics.blit(GUI_ICONS_LOCATION,
                                         x, y,
                                         CROSSBAR_SHIELD_INDICATOR_X, CROSSBAR_SHIELD_INDICATOR_Y,
                                         CROSSBAR_SHIELD_INDICATOR_WIDTH, CROSSBAR_SHIELD_INDICATOR_HEIGHT);
                             } else if (isShieldOnCooldown(player, shieldHoldingHand)) {
-                                GuiComponent.blit(poseStack,
+                                graphics.blit(GUI_ICONS_LOCATION,
                                         x, y,
                                         CROSSBAR_SHIELD_INDICATOR_DISABLED_X, CROSSBAR_SHIELD_INDICATOR_DISABLED_Y,
                                         CROSSBAR_SHIELD_INDICATOR_WIDTH, CROSSBAR_SHIELD_INDICATOR_HEIGHT);
@@ -107,7 +106,7 @@ public class ShieldIndicatorRenderer {
         return player.getCooldowns().isOnCooldown(player.getItemInHand(shieldHoldingHand).getItem());
     }
 
-    public static void renderHotbar(ForgeGui gui, PoseStack poseStack, int screenWidth, int screenHeight) {
+    public static void renderHotbar(ForgeGui gui, GuiGraphics graphics, int screenWidth, int screenHeight) {
         Player player = getCameraPlayer(Minecraft.getInstance());
         if (player != null) {
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
@@ -129,12 +128,12 @@ public class ShieldIndicatorRenderer {
                     RenderSystem.setShaderTexture(0, GUI_ICONS_LOCATION);
                     RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                     if(player.isBlocking()){
-                        GuiComponent.blit(poseStack,
+                        graphics.blit(GUI_ICONS_LOCATION,
                                 x, y,
                                 HOTBAR_SHIELD_INDICATOR_X, HOTBAR_SHIELD_INDICATOR_Y,
                                 HOTBAR_SHIELD_INDICATOR_WIDTH, HOTBAR_SHIELD_INDICATOR_HEIGHT);
                     } else if(isShieldOnCooldown(player, shieldHoldingHand)){
-                        GuiComponent.blit(poseStack,
+                        graphics.blit(GUI_ICONS_LOCATION,
                                 x, y,
                                 HOTBAR_SHIELD_INDICATOR_DISABLED_X, HOTBAR_SHIELD_INDICATOR_DISABLED_Y,
                                 HOTBAR_SHIELD_INDICATOR_WIDTH, HOTBAR_SHIELD_INDICATOR_HEIGHT);

@@ -1,7 +1,7 @@
 plugins {
     id 'eclipse'
     id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '5.1.+'
+    id 'net.minecraftforge.gradle' version '6.0.+'
     id 'org.spongepowered.mixin' version '0.7.+'
 }
 
@@ -159,7 +159,8 @@ dependencies {
     // compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api") // Adds JEI API as a compile dependency
     // runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}") // Adds the full JEI mod as a runtime dependency
     // implementation fg.deobf("com.tterrag.registrate:Registrate:MC${mc_version}-${registrate_version}") // Adds registrate as a dependency
-    runtimeOnly fg.deobf("curse.maven:configured-457570:${configured_version}")
+
+    //runtimeOnly fg.deobf("curse.maven:configured-457570:${configured_version}")
     runtimeOnly fg.deobf("curse.maven:enchdesc-250419:${enchdesc_version}")
     runtimeOnly fg.deobf("curse.maven:bookshelf-228525:${bookshelf_version}")
 

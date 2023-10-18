@@ -40,7 +40,7 @@ public class ClientCombatUtil {
     }
 
     public static void handleShiftKeyDown() {
-        if (Minecraft.getInstance().getOverlay() == null && (Minecraft.getInstance().screen == null || Minecraft.getInstance().screen.passEvents)) {
+        if (Minecraft.getInstance().getOverlay() == null && Minecraft.getInstance().screen == null) {
             //noinspection ConstantConditions
             if(Minecraft.getInstance().options.keyShift.isDown()
                     && CombatUtil.hasOffhandShield(Minecraft.getInstance().player)

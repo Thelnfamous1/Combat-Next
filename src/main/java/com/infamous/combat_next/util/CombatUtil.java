@@ -2,7 +2,6 @@ package com.infamous.combat_next.util;
 
 import com.infamous.combat_next.CombatNext;
 import com.infamous.combat_next.client.ClientCombatUtil;
-import com.infamous.combat_next.config.ShieldCombatValues;
 import com.infamous.combat_next.config.*;
 import com.infamous.combat_next.mixin.ItemAccessor;
 import com.infamous.combat_next.mixin.LivingEntityAccessor;
@@ -48,7 +47,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.ToolActions;
 import org.jetbrains.annotations.Nullable;
 
@@ -143,7 +141,7 @@ public class CombatUtil {
         int cleavingTicks = ShieldCombatConfigs.getShieldDisableTimeCleaving().get() * cleavingLevel;
         victim.getCooldowns().addCooldown(victim.getUseItem().getItem(), ShieldCombatValues.getDisableTimeBase(victim.getUseItem().getItem()).orElse(DEFAULT_SHIELD_DISABLE_TIME) + cleavingTicks);
         victim.stopUsingItem();
-        victim.level.broadcastEntityEvent(victim, (byte) SHIELD_BREAK_EVENT_ID);
+        victim.level().broadcastEntityEvent(victim, (byte) SHIELD_BREAK_EVENT_ID);
     }
 
     public static void attackEmpty(Player player) {
@@ -152,16 +150,18 @@ public class CombatUtil {
             CNNetwork.SYNC_CHANNEL.sendToServer(ServerboundMissPacket.createMissPacket());
         }
         if (!player.isSpectator()) {
-            if(MeleeCombatConfigs.getAttackMissSweepAttack().get()) sweepAttack(player);
-            resetAttackStrengthTicker(player, true);
+            if(MeleeCombatConfigs.getAttackMissSweepAttack().get()){
+                sweepAttack(player);
+            }
+            resetAttackStrengthTicker(player, true, MeleeCombatConfigs.getAttackMissSweepAttack().get());
         }
     }
     
-    public static void resetAttackStrengthTicker(Player player, boolean miss){
+    public static void resetAttackStrengthTicker(Player player, boolean miss, boolean allowDefault){
         if(miss && MeleeCombatConfigs.getAttackMissReducedCooldown().get()){
             LivingEntityAccessor accessor = (LivingEntityAccessor) player;
             accessor.setAttackStrengthTicker(Math.max(0, (int) (player.getCurrentItemAttackStrengthDelay() - MeleeCombatConfigs.getAttackMissCooldownTicks().get())));
-        } else{
+        } else if(miss && allowDefault){
             player.resetAttackStrengthTicker();
         }
     }
@@ -177,14 +177,14 @@ public class CombatUtil {
         if (attackDamage > 0.0F || damageBonus > 0.0F) {
             boolean fullStrength = attackStrengthScale > 0.9F;
             boolean sprintAttack = player.isSprinting() && fullStrength;
-            boolean critAttack = fullStrength && player.fallDistance > 0.0F && !player.isOnGround() && !player.onClimbable() && !player.isInWater() && !player.hasEffect(MobEffects.BLINDNESS) && !player.isPassenger();
+            boolean critAttack = fullStrength && player.fallDistance > 0.0F && !player.onGround() && !player.onClimbable() && !player.isInWater() && !player.hasEffect(MobEffects.BLINDNESS) && !player.isPassenger();
             critAttack = critAttack && !player.isSprinting();
 
             attackDamage += damageBonus;
 
             boolean sweepAttack = false;
             double walkDistD = player.walkDist - player.walkDistO;
-            if (fullStrength && !critAttack && !sprintAttack && player.isOnGround() && walkDistD < (double)player.getSpeed()) {
+            if (fullStrength && !critAttack && !sprintAttack && player.onGround() && walkDistD < (double)player.getSpeed()) {
                 ItemStack itemInHand = player.getItemInHand(InteractionHand.MAIN_HAND);
                 sweepAttack = canSweepAttack(itemInHand);
             }
@@ -192,7 +192,7 @@ public class CombatUtil {
             if(sweepAttack){
                 float sweepDamage = 1.0F + EnchantmentHelper.getSweepingDamageRatio(player) * attackDamage;
 
-                for(LivingEntity sweepTarget : player.level.getEntitiesOfClass(LivingEntity.class, getSweepHitBox(player, player.getItemInHand(InteractionHand.MAIN_HAND)))) {
+                for(LivingEntity sweepTarget : player.level().getEntitiesOfClass(LivingEntity.class, getSweepHitBox(player, player.getItemInHand(InteractionHand.MAIN_HAND)))) {
                     double entityReachSq = Mth.square(player.getEntityReach()); // Use entity reach instead of constant 9.0. Vanilla uses bottom center-to-center checks here, so don't update this to use canReach, since it uses closest-corner checks.
                     if (sweepTarget != player && !player.isAlliedTo(sweepTarget) && (!(sweepTarget instanceof ArmorStand armorStand) || !armorStand.isMarker()) && player.distanceToSqr(sweepTarget) < entityReachSq) { // Original check was dist < 3, range is 3, so vanilla used padding=0
                         sweepTarget.knockback(0.4D, Mth.sin(player.getYRot() * (Mth.PI / 180F)), -Mth.cos(player.getYRot() * Mth.PI / 180F));
@@ -200,7 +200,7 @@ public class CombatUtil {
                     }
                 }
 
-                player.level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP, player.getSoundSource(), 1.0F, 1.0F);
+                player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP, player.getSoundSource(), 1.0F, 1.0F);
                 player.sweepAttack();
             }
         }
@@ -275,7 +275,7 @@ public class CombatUtil {
         boolean fullStrength = player.getAttackStrengthScale(0.5F) > 0.9F;
         boolean canSprintCrit = fullStrength
                 && player.fallDistance <= 0.0F // can't sprint and fall
-                && player.isOnGround() // can only sprint on ground
+                && player.onGround() // can only sprint on ground
                 && !player.onClimbable()
                 && !player.isInWater()
                 && !player.hasEffect(MobEffects.BLINDNESS)
@@ -392,7 +392,7 @@ public class CombatUtil {
     }
 
     public static boolean canShieldOnCrouch(Player player){
-        return player.isOnGround();
+        return player.onGround();
     }
 
     public static InteractionHand getShieldHoldingHand(LivingEntity livingEntity) {
@@ -412,7 +412,7 @@ public class CombatUtil {
     }
 
     public static boolean isAxe(ItemStack stack) {
-        return stack.getItem() instanceof AxeItem || stack.is(Tags.Items.TOOLS_AXES) || stack.is(ItemTags.AXES);
+        return stack.getItem() instanceof AxeItem || stack.is(ItemTags.AXES);
     }
 
     public static boolean isOnMaxInvulnerableTime(LivingEntity victim) {
