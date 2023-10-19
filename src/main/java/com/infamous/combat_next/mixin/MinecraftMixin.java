@@ -103,7 +103,7 @@ public abstract class MinecraftMixin implements MinecraftCombat {
     }
 
     @Override
-    public boolean setRetainAttack(boolean retain) {
+    public void setRetainAttack(boolean retain) {
         this.retainAttack = retain;
     }
 
