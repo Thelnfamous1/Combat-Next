@@ -32,7 +32,8 @@ public abstract class MinecraftMixin implements MinecraftCombat {
     @Shadow @Nullable public ClientLevel level;
     @Shadow @Final public Options options;
     private int leftClickDelay;
-
+    public boolean retainAttack = false;
+    
     /*
     @Redirect(method = "startAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;resetAttackStrengthTicker()V", ordinal = 0))
     private void dontResetTickerIfMissed(LocalPlayer instance){
@@ -45,12 +46,20 @@ public abstract class MinecraftMixin implements MinecraftCombat {
         return false;
     }
 
-    @Inject(method = "continueAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;stopDestroyBlock()V"), cancellable = true)
+    @Inject(method = "continueAttack", at = @At(value = "HEAD"), cancellable = true)
     private void handleContinueAttack(boolean started, CallbackInfo ci){
         //noinspection ConstantConditions
-        if (started && !CombatUtil.onAttackCooldown(this.player, -1.0F) && MeleeCombatConfigs.getAttackWhenKeyHeld().get() && this.noLeftClickDelay()) {
-            ci.cancel();
-            this.startAttack();
+		boolean retained = this.screen == null && (this.options.keyAttack.isDown() || this.retainAttack) && this.mouseHandler.isMouseGrabbed();
+        if (missTime <= 0) {
+			if (player != null && !this.player.isUsingItem()) {
+				if (bl1 && this.hitResult != null && this.hitResult.getType() == HitResult.Type.BLOCK) {
+					this.retainAttack = false;
+				} if (retained && !CombatUtil.onAttackCooldown(this.player, -1.0F) && MeleeCombatConfigs.getAttackWhenKeyHeld().get() && this.noLeftClickDelay()) {
+                    ci.cancel();
+                    this.retainAttack = false;
+                    this.startAttack();
+                }
+            }
         }
     }
 
@@ -91,6 +100,11 @@ public abstract class MinecraftMixin implements MinecraftCombat {
     @Override
     public void setLeftClickDelay(int leftClickDelay) {
         this.leftClickDelay = leftClickDelay;
+    }
+
+    @Override
+    public boolean setRetainAttack(boolean retain) {
+        this.retainAttack = retain;
     }
 
 }
