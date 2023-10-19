@@ -22,5 +22,7 @@ public interface MinecraftCombat {
     int getLeftClickDelay();
 
     void setLeftClickDelay(int leftClickDelay);
+    
+    boolean setRetainAttack(boolean retain);
 
 }
