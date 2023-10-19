@@ -219,7 +219,16 @@ public class CombatUtil {
     }
 
     public static boolean onAttackCooldown(Player player, float partialTick) {
-        return player.getAttackStrengthScale(partialTick) < 1.0F && MeleeCombatConfigs.getAttackDuringCooldownPrevented().get();
+        if (MeleeCombatConfigs.getAttackDuringCooldownPrevented().get()) {
+            if (player.getAttackStrengthScale(partialTick) < 0.8F) {
+                return true;
+            }
+            
+            if (player.getAttackStrengthScale(partialTick) < 1.0F) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static AABB adjustBBForRayTrace(AABB boundingBox) {
