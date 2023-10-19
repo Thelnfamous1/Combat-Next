@@ -49,18 +49,18 @@ public abstract class MinecraftMixin implements MinecraftCombat {
     @Inject(method = "continueAttack", at = @At(value = "HEAD"), cancellable = true)
     private void handleContinueAttack(boolean started, CallbackInfo ci){
         //noinspection ConstantConditions
-		boolean retained = this.screen == null && (this.options.keyAttack.isDown() || this.retainAttack) && this.mouseHandler.isMouseGrabbed();
+	boolean retained = this.screen == null && (this.options.keyAttack.isDown() || this.retainAttack) && this.mouseHandler.isMouseGrabbed();
         if (missTime <= 0) {
-			if (player != null && !this.player.isUsingItem()) {
-				if (bl1 && this.hitResult != null && this.hitResult.getType() == HitResult.Type.BLOCK) {
-					this.retainAttack = false;
-				} if (retained && !CombatUtil.onAttackCooldown(this.player, -1.0F) && MeleeCombatConfigs.getAttackWhenKeyHeld().get() && this.noLeftClickDelay()) {
-                    ci.cancel();
-                    this.retainAttack = false;
-                    this.startAttack();
-                }
-            }
-        }
+		if (player != null && !this.player.isUsingItem()) {
+			if (bl1 && this.hitResult != null && this.hitResult.getType() == HitResult.Type.BLOCK) {
+				this.retainAttack = false;
+			} if (retained && !CombatUtil.onAttackCooldown(this.player, -1.0F) && MeleeCombatConfigs.getAttackWhenKeyHeld().get() && this.noLeftClickDelay()) {
+                   		 ci.cancel();
+                    		this.retainAttack = false;
+                    		this.startAttack();
+			}
+		}
+	}
     }
 
     @Inject(at = @At("HEAD"), method = "startAttack")
