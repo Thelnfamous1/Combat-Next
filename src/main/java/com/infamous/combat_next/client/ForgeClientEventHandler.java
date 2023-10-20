@@ -1,8 +1,10 @@
 package com.infamous.combat_next.client;
 
 import com.infamous.combat_next.CombatNext;
+import com.infamous.combat_next.config.MeleeCombatConfigs;
 import com.infamous.combat_next.util.CombatUtil;
 import com.infamous.combat_next.util.MinecraftCombat;
+import com.infamous.combat_next.util.PlayerCombat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
@@ -27,7 +29,7 @@ public class ForgeClientEventHandler {
         if(!event.isCanceled() && event.isAttack()){
             Player player = Minecraft.getInstance().player;
             //noinspection ConstantConditions
-            if(CombatUtil.onAttackCooldown(player, 0.5F)){
+            if (CombatUtil.onAttackCooldown(player, 1.0F)) {
                 event.setCanceled(true);
                 event.setSwingHand(false);
             }

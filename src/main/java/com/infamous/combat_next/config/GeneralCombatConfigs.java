@@ -1,9 +1,11 @@
 package com.infamous.combat_next.config;
 
+import com.infamous.combat_next.util.HitboxInflationType;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 public class GeneralCombatConfigs {
     private static ForgeConfigSpec.IntValue drinkUseDurationTicks;
+    private static ForgeConfigSpec.EnumValue<HitboxInflationType> hitboxAdjustmentType;
     private static ForgeConfigSpec.DoubleValue hitboxMinSizeForHitscan;
     private static ForgeConfigSpec.BooleanValue attacksInterruptConsumption;
     private static ForgeConfigSpec.BooleanValue impalingChange;
@@ -37,6 +39,16 @@ public class GeneralCombatConfigs {
                             For vanilla, this value is false.
                             """)
                     .define("impaling_change", true);
+            hitboxAdjustmentType = b
+                    .comment("""
+                            Which type of hitbox adjustment should be used.
+                            Base CN hitbox increase expands all dimensions to the minimum value.
+                            CTS hitbox increase only applies if the largest dimension of the entity is less than the minimum.
+                            If CTS does apply to the entity, it inflates all dimensions by the value (minimum - largestDim).
+                            For vanilla, this value is OFF.
+                            For CTS, this value is CTS.
+                            """)
+                    .defineEnum("hitbox_adjustment_type", HitboxInflationType.CN);
             hitboxMinSizeForHitscan = b
                     .comment("""
                             Adjusts the minimum size an entity's hitbox can be, in blocks, for hitscan detection.
@@ -59,6 +71,10 @@ public class GeneralCombatConfigs {
 
     public static ForgeConfigSpec.DoubleValue getHitboxMinSizeForHitscan() {
         return hitboxMinSizeForHitscan;
+    }
+
+    public static ForgeConfigSpec.EnumValue<HitboxInflationType> getHitboxAdjustmentType() {
+        return hitboxAdjustmentType;
     }
 
     public static ForgeConfigSpec.BooleanValue getAttacksInterruptConsumption() {

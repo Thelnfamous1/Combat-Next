@@ -8,6 +8,7 @@ import com.infamous.combat_next.network.CNNetwork;
 import com.infamous.combat_next.network.ClientboundConfigSyncPacket;
 import com.infamous.combat_next.util.CombatUtil;
 import com.infamous.combat_next.config.WeaponRebalancing;
+import com.infamous.combat_next.util.PlayerCombat;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
@@ -160,9 +161,11 @@ public class ForgeEventHandler {
     static void onPlayerAttack(AttackEntityEvent event){
         if(!event.isCanceled()){
             Player player = event.getEntity();
-            if(CombatUtil.onAttackCooldown(player, 0.5F)){
+            if (CombatUtil.onAttackCooldown(player, 1.0F)) {
                 event.setCanceled(true);
+                return;
             }
+            PlayerCombat.cast(player).setMissedAttackRecovery(0);
         }
     }
 

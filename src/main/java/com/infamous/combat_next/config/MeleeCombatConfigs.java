@@ -1,5 +1,6 @@
 package com.infamous.combat_next.config;
 
+import com.infamous.combat_next.util.HitboxInflationType;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.util.List;
@@ -13,6 +14,8 @@ public class MeleeCombatConfigs {
     private static ForgeConfigSpec.BooleanValue attackMissReducedCooldown;
     private static ForgeConfigSpec.BooleanValue attackMissSweepAttack;
     private static ForgeConfigSpec.BooleanValue attackDuringCooldownPrevented;
+    private static ForgeConfigSpec.BooleanValue attackGracePeriod;
+    private static ForgeConfigSpec.DoubleValue attackGracePeriodTime;
     private static ForgeConfigSpec.BooleanValue attackThroughNonSolidBlocks;
     private static ForgeConfigSpec.BooleanValue attackCriticalWhenSprinting;
     private static ForgeConfigSpec.BooleanValue attackSupercharge;
@@ -23,6 +26,7 @@ public class MeleeCombatConfigs {
     private static ForgeConfigSpec.BooleanValue axeHitEnemyChange;
     private static ForgeConfigSpec.IntValue attackHeldDelayTicks;
     private static ForgeConfigSpec.BooleanValue attackCooldownWhenSwitchingPrevented;
+    private static ForgeConfigSpec.BooleanValue attackCooldownImpactOnDamage;
     private static ForgeConfigSpec.BooleanValue sweepingEdgeOnAxes;
     private static ForgeConfigSpec.BooleanValue playerAttackDamageBaseChange;
     private static ForgeConfigSpec.BooleanValue playerAttackReachBaseChange;
@@ -41,6 +45,12 @@ public class MeleeCombatConfigs {
                             For vanilla, this value is false.
                             """)
                     .define("attack_cooldown_when_switching_prevented", true);
+            attackCooldownImpactOnDamage = b
+                    .comment("""
+                            Toggles the removal of attacking too early changing damage and disabling crits
+                            For vanilla, this value is true.
+                            """)
+                    .define("attack_cooldown_impact_on_damage", false);
             attackCriticalWhenSprinting = b
                     .comment("""
                             Toggles attacks becoming critical when sprinting.
@@ -53,6 +63,18 @@ public class MeleeCombatConfigs {
                             For vanilla, this value is false.
                             """)
                     .define("attack_during_cooldown_prevented", true);
+            attackGracePeriod = b
+                    .comment("""
+                            Toggles the "grace period" where if you attack before 100% when you shouldn't be able to, but are between 80% and 100%, the attack is delayed until one tick after 100%.
+                            For vanilla, this value is false.
+                            """)
+                    .define("attack_grace_period", true);
+            attackGracePeriodTime = b
+                    .comment("""
+                            Determines the grace period time, between 0 and 1, default is 0.8, representing the 80%-100% window normally present.
+                            For vanilla, this value is 1.
+                            """)
+                    .defineInRange("attack_grace_period_time", 0.8, 0, 1);
             attackHeldDelayTicks = b
                     .comment("""
                             Adjusts the minimum delay in ticks (1/20 seconds) between attacks when holding the attack key.
@@ -245,6 +267,14 @@ public class MeleeCombatConfigs {
         return attackDuringCooldownPrevented;
     }
 
+    public static ForgeConfigSpec.BooleanValue getAttackGracePeriod() {
+        return attackGracePeriod;
+    }
+
+    public static ForgeConfigSpec.DoubleValue getAttackGracePeriodTime() {
+        return attackGracePeriodTime;
+    }
+
     public static ForgeConfigSpec.BooleanValue getAttackThroughNonSolidBlocks() {
         return attackThroughNonSolidBlocks;
     }
@@ -283,6 +313,10 @@ public class MeleeCombatConfigs {
 
     public static ForgeConfigSpec.BooleanValue getAttackCooldownWhenSwitchingPrevented() {
         return attackCooldownWhenSwitchingPrevented;
+    }
+
+    public static ForgeConfigSpec.BooleanValue getAttackCooldownImpactOnDamage() {
+        return attackCooldownImpactOnDamage;
     }
 
     public static ForgeConfigSpec.BooleanValue getSweepingEdgeOnAxes() {

@@ -10,6 +10,7 @@ import com.infamous.combat_next.network.CNNetwork;
 import com.infamous.combat_next.network.ServerboundMissPacket;
 import com.infamous.combat_next.registry.EnchantmentRegistry;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
 import net.minecraft.core.dispenser.AbstractProjectileDispenseBehavior;
@@ -46,8 +47,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.ToolActions;
+import net.minecraftforge.fml.DistExecutor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -159,8 +162,8 @@ public class CombatUtil {
     
     public static void resetAttackStrengthTicker(Player player, boolean miss, boolean allowDefault){
         if(miss && MeleeCombatConfigs.getAttackMissReducedCooldown().get()){
-            LivingEntityAccessor accessor = (LivingEntityAccessor) player;
-            accessor.setAttackStrengthTicker(Math.max(0, (int) (player.getCurrentItemAttackStrengthDelay() - MeleeCombatConfigs.getAttackMissCooldownTicks().get())));
+            player.resetAttackStrengthTicker();
+            PlayerCombat.cast(player).setMissedAttackRecovery(MeleeCombatConfigs.getAttackMissCooldownTicks().get());
         } else if(miss && allowDefault){
             player.resetAttackStrengthTicker();
         }
@@ -170,7 +173,7 @@ public class CombatUtil {
         float attackDamage = (float)player.getAttributeValue(Attributes.ATTACK_DAMAGE);
         float damageBonus = EnchantmentHelper.getDamageBonus(player.getMainHandItem(), MobType.UNDEFINED);
 
-        float attackStrengthScale = player.getAttackStrengthScale(0.5F);
+        float attackStrengthScale = MeleeCombatConfigs.getAttackCooldownImpactOnDamage().get() ? player.getAttackStrengthScale(0.5F) : 1;
         attackDamage *= 0.2F + attackStrengthScale * attackStrengthScale * 0.8F;
         damageBonus *= attackStrengthScale;
         damageBonus = scaleDamageBonus(player, damageBonus);
@@ -218,13 +221,24 @@ public class CombatUtil {
         return weapon.getSweepHitBox(player, player).move(xShift, 0.0, zShift);
     }
 
+    public static boolean isAttackAvailable(Player player, float partialTick) {
+        if (player.getAttackStrengthScale(partialTick) < 1.0F) {
+            LivingEntityAccessor livingEntityAccessor = (LivingEntityAccessor) player;
+            return PlayerCombat.cast(player).getMissedAttackRecovery() > 0 && livingEntityAccessor.getAttackStrengthTicker() + partialTick > PlayerCombat.cast(player).getMissedAttackRecovery();
+        }
+        return true;
+    }
+
     public static boolean onAttackCooldown(Player player, float partialTick) {
-        if (MeleeCombatConfigs.getAttackDuringCooldownPrevented().get()) {
-            if (player.getAttackStrengthScale(partialTick) < 0.8F) {
+        if (!isAttackAvailable(player, partialTick) && MeleeCombatConfigs.getAttackDuringCooldownPrevented().get()) {
+            if (!MeleeCombatConfigs.getAttackGracePeriod().get() && player.getAttackStrengthScale(partialTick) < 1.0F)
+                return true;
+            if (player.getAttackStrengthScale(partialTick) < MeleeCombatConfigs.getAttackGracePeriodTime().get()) {
                 return true;
             }
-            
+
             if (player.getAttackStrengthScale(partialTick) < 1.0F) {
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> MinecraftCombat.cast(Minecraft.getInstance()).setRetainAttack(true));
                 return true;
             }
         }
@@ -232,11 +246,19 @@ public class CombatUtil {
     }
 
     public static AABB adjustBBForRayTrace(AABB boundingBox) {
-        if(boundingBox.getSize() < GeneralCombatConfigs.getHitboxMinSizeForHitscan().get()){
-            double xAdjust = adjustSize(boundingBox.getXsize());
-            double yAdjust = adjustSize(boundingBox.getYsize());
-            double zAdjust = adjustSize(boundingBox.getZsize());
-            boundingBox = boundingBox.inflate(xAdjust, yAdjust, zAdjust);
+        if (GeneralCombatConfigs.getHitboxAdjustmentType().get() == HitboxInflationType.CN) {
+            if (boundingBox.getSize() < GeneralCombatConfigs.getHitboxMinSizeForHitscan().get()) {
+                double xAdjust = adjustSize(boundingBox.getXsize());
+                double yAdjust = adjustSize(boundingBox.getYsize());
+                double zAdjust = adjustSize(boundingBox.getZsize());
+                boundingBox = boundingBox.inflate(xAdjust, yAdjust, zAdjust);
+            }
+        } else if (GeneralCombatConfigs.getHitboxAdjustmentType().get() == HitboxInflationType.CTS) {
+            double d = Math.max(boundingBox.getXsize(), boundingBox.getYsize());
+            if (d < GeneralCombatConfigs.getHitboxMinSizeForHitscan().get()) {
+                d = (GeneralCombatConfigs.getHitboxMinSizeForHitscan().get() - d) * 0.5;
+            }
+            boundingBox = boundingBox.inflate(d);
         }
         return boundingBox;
     }
@@ -282,6 +304,7 @@ public class CombatUtil {
 
     public static boolean isSprintCritical(Player player, Entity target) {
         boolean fullStrength = player.getAttackStrengthScale(0.5F) > 0.9F;
+        fullStrength |= !MeleeCombatConfigs.getAttackCooldownImpactOnDamage().get();
         boolean canSprintCrit = fullStrength
                 && player.fallDistance <= 0.0F // can't sprint and fall
                 && player.onGround() // can only sprint on ground
