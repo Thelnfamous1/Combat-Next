@@ -165,7 +165,7 @@ public class ForgeEventHandler {
                 event.setCanceled(true);
                 return;
             }
-            PlayerCombat.cast(player).setMissedAttackRecovery(0);
+            PlayerCombat.cast(player).setMissedAttackRecovery(-1);
         }
     }
 

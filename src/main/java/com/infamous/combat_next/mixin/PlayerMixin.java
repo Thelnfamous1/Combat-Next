@@ -26,7 +26,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerCombat {
     private float currentDamageBonus;
     @Nullable
     private CriticalHitEvent criticalHitEvent;
-    private int missedAttackRecovery = 0;
+    private int missedAttackRecovery = -1;
 
     protected PlayerMixin(EntityType<? extends LivingEntity> p_20966_, Level p_20967_) {
         super(p_20966_, p_20967_);

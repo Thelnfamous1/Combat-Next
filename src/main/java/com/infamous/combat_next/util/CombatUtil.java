@@ -224,7 +224,7 @@ public class CombatUtil {
     public static boolean isAttackAvailable(Player player, float partialTick) {
         if (player.getAttackStrengthScale(partialTick) < 1.0F) {
             LivingEntityAccessor livingEntityAccessor = (LivingEntityAccessor) player;
-            return PlayerCombat.cast(player).getMissedAttackRecovery() > 0 && livingEntityAccessor.getAttackStrengthTicker() + partialTick > PlayerCombat.cast(player).getMissedAttackRecovery();
+            return PlayerCombat.cast(player).getMissedAttackRecovery() > -1 && livingEntityAccessor.getAttackStrengthTicker() + partialTick > PlayerCombat.cast(player).getMissedAttackRecovery();
         }
         return true;
     }

@@ -65,7 +65,7 @@ public class MeleeCombatConfigs {
                     .define("attack_during_cooldown_prevented", true);
             attackGracePeriod = b
                     .comment("""
-                            Toggles the "grace period" where if you attack before 100% when you shouldn't be able to, but are between 80% and 100%, the attack is delayed until one tick after 100%.
+                            Toggles the "grace period" where if you attack before 100% when you shouldn't be able to, but are between the percentage value of attack_grace_period_time and 100%, the attack is delayed until one tick after 100%.
                             For vanilla, this value is false.
                             """)
                     .define("attack_grace_period", true);

@@ -46,9 +46,10 @@ public class GeneralCombatConfigs {
                             CTS hitbox increase only applies if the largest dimension of the entity is less than the minimum.
                             If CTS does apply to the entity, it inflates all dimensions by the value (minimum - largestDim).
                             For vanilla, this value is OFF.
+                            For CN, this value is CN.
                             For CTS, this value is CTS.
                             """)
-                    .defineEnum("hitbox_adjustment_type", HitboxInflationType.CN);
+                    .defineEnum("hitbox_adjustment_type", HitboxInflationType.CTS);
             hitboxMinSizeForHitscan = b
                     .comment("""
                             Adjusts the minimum size an entity's hitbox can be, in blocks, for hitscan detection.
