@@ -14,7 +14,7 @@ public class ItemInHandRendererMixin {
     private boolean playReequipAnimation(boolean original){
         if(!original){
             //noinspection ConstantConditions
-            return CombatUtil.onAttackCooldown(Minecraft.getInstance().player, 1.0F);
+            return !CombatUtil.isAttackAvailable(Minecraft.getInstance().player, 1.0F);
         }
         return true;
     }

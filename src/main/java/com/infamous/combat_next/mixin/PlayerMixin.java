@@ -4,6 +4,7 @@ import com.infamous.combat_next.config.GeneralCombatConfigs;
 import com.infamous.combat_next.config.MeleeCombatConfigs;
 import com.infamous.combat_next.config.ShieldCombatConfigs;
 import com.infamous.combat_next.util.CombatUtil;
+import com.infamous.combat_next.util.PlayerCombat;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.WrapWithCondition;
 import net.minecraft.world.InteractionHand;
@@ -20,11 +21,12 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Player.class)
-public abstract class PlayerMixin extends LivingEntity{
+public abstract class PlayerMixin extends LivingEntity implements PlayerCombat {
 
     private float currentDamageBonus;
     @Nullable
     private CriticalHitEvent criticalHitEvent;
+    private int missedAttackRecovery = -1;
 
     protected PlayerMixin(EntityType<? extends LivingEntity> p_20966_, Level p_20967_) {
         super(p_20966_, p_20967_);
@@ -56,6 +58,11 @@ public abstract class PlayerMixin extends LivingEntity{
         } else{
             return constant;
         }
+    }
+
+    @ModifyExpressionValue(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;getAttackStrengthScale(F)F", ordinal = 0))
+    public float nullTime(float original) {
+        return MeleeCombatConfigs.getAttackCooldownImpactOnDamage().get() ? original : 1;
     }
 
     @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 1), ordinal = 3)
@@ -107,5 +114,15 @@ public abstract class PlayerMixin extends LivingEntity{
             original += ((this.criticalHitEvent.getDamageModifier() - 1.0F) * this.currentDamageBonus);
         }
         return original;
+    }
+
+    @Override
+    public int getMissedAttackRecovery() {
+        return missedAttackRecovery;
+    }
+
+    @Override
+    public void setMissedAttackRecovery(int missedAttackRecovery) {
+        this.missedAttackRecovery = missedAttackRecovery;
     }
 }
