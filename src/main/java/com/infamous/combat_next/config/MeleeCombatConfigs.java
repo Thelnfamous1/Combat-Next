@@ -273,11 +273,9 @@ public class MeleeCombatConfigs {
     public static ForgeConfigSpec.BooleanValue getAttackDuringCooldownPrevented() {
         return attackDuringCooldownPrevented;
     }
-
     public static ForgeConfigSpec.BooleanValue getAttackDurationAdjustment() {
         return attackDurationAdjustment;
     }
-
     public static ForgeConfigSpec.BooleanValue getAttackGracePeriod() {
         return attackGracePeriod;
     }
