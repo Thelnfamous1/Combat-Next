@@ -1,6 +1,7 @@
 package com.infamous.combat_next.mixin;
 
 import com.infamous.combat_next.config.RangedCombatConfigs;
+import com.infamous.combat_next.util.CombatUtil;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -21,7 +22,7 @@ public abstract class BowItemMixin {
     private float getInaccuracy(float original, ItemStack stack, Level level, LivingEntity livingEntity, int useItemRemainingTicks){
         if(RangedCombatConfigs.getBowOverdrawing().get()){
             int useTicks = this.getUseDuration(stack) - useItemRemainingTicks;
-            return useTicks <= RangedCombatConfigs.getBowTicksBeforeOverdrawn().get() ? 0.0F : RangedCombatConfigs.getBowOverdrawnArrowInaccuracy().get().floatValue();
+            return useTicks <= RangedCombatConfigs.getBowTicksBeforeOverdrawn().get() ? 0.0F : RangedCombatConfigs.getBowOverdrawnArrowInaccuracyMax().get().floatValue();
         } else{
             return original;
         }
@@ -32,7 +33,7 @@ public abstract class BowItemMixin {
     private float modifyInaccuracy(float original, ItemStack stack, Level level, LivingEntity livingEntity, int useItemRemainingTicks){
         if(RangedCombatConfigs.getBowOverdrawing().get()){
             int useTicks = this.getUseDuration(stack) - useItemRemainingTicks;
-            return useTicks <= RangedCombatConfigs.getBowTicksBeforeOverdrawn().get() ? 0.0F : RangedCombatConfigs.getBowOverdrawnArrowInaccuracy().get().floatValue();
+            return CombatUtil.getFatigueForTime(useTicks) * RangedCombatConfigs.getBowOverdrawnArrowInaccuracyDefault().get().floatValue();
         } else{
             return original;
         }
@@ -42,7 +43,7 @@ public abstract class BowItemMixin {
     private AbstractArrow modifyArrowCrit(AbstractArrow arrow, ItemStack stack, Level level, LivingEntity livingEntity, int useItemRemainingTicks){
         if(RangedCombatConfigs.getBowOverdrawing().get()){
             int useTicks = this.getUseDuration(stack) - useItemRemainingTicks;
-            if(useTicks > RangedCombatConfigs.getBowTicksBeforeOverdrawn().get()){
+            if(CombatUtil.getFatigueForTime(useTicks) > 0.5F){
                 arrow.setCritArrow(false);
             }
         }
