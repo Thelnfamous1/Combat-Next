@@ -199,7 +199,7 @@ public class ForgeEventHandler {
     static void onPlayerTick(TickEvent.PlayerTickEvent event){
         if(event.phase == TickEvent.Phase.END){
             if(MeleeCombatConfigs.getAttackSupercharge().get()){
-                boolean supercharged = CombatUtil.isSupercharged(event.player, 0.5F);
+                boolean supercharged = CombatUtil.isSupercharged(event.player, 1.0F);
                 CombatUtil.handleBonusAttackReach(event.player, supercharged && !event.player.isCrouching());
             }
             if(ShieldCombatConfigs.getShieldReduceKnockback().get()){

@@ -6,6 +6,7 @@ import com.infamous.combat_next.config.ShieldCombatConfigs;
 import com.infamous.combat_next.util.CombatUtil;
 import com.infamous.combat_next.util.PlayerCombat;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.WrapWithCondition;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -79,6 +80,11 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerCombat {
     @ModifyVariable(method = "attack", at = @At(value = "STORE", ordinal = 1), ordinal = 1)
     private float modifyDamageBonus2(float original, Entity target){
         return CombatUtil.recalculateDamageBonus(this.getMainHandItem(), original, target);
+    }
+
+    @ModifyReturnValue(method = "getCurrentItemAttackStrengthDelay", at = @At(value = "RETURN"))
+    private float currentItemStrengthDelayAdjust(float original) {
+        return MeleeCombatConfigs.getAttackDurationAdjustment().get() ? (int)(original + 0.5F) : original;
     }
 
     /*

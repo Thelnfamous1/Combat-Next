@@ -17,6 +17,7 @@ public class CNConfig {
 
     private static void setupClientConfig(ForgeConfigSpec.Builder builder) {
         ShieldCombatConfigs.createClientConfigs(builder);
+        AnimCombatConfigs.createClientConfigs(builder);
     }
 
     private static void setupServerConfig(ForgeConfigSpec.Builder builder) {

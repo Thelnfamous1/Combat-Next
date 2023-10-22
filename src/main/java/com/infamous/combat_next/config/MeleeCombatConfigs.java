@@ -14,6 +14,7 @@ public class MeleeCombatConfigs {
     private static ForgeConfigSpec.BooleanValue attackMissReducedCooldown;
     private static ForgeConfigSpec.BooleanValue attackMissSweepAttack;
     private static ForgeConfigSpec.BooleanValue attackDuringCooldownPrevented;
+    private static ForgeConfigSpec.BooleanValue attackDurationAdjustment;
     private static ForgeConfigSpec.BooleanValue attackGracePeriod;
     private static ForgeConfigSpec.DoubleValue attackGracePeriodTime;
     private static ForgeConfigSpec.BooleanValue attackThroughNonSolidBlocks;
@@ -63,6 +64,12 @@ public class MeleeCombatConfigs {
                             For vanilla, this value is false.
                             """)
                     .define("attack_during_cooldown_prevented", true);
+            attackDurationAdjustment = b
+                    .comment("""
+                            Toggles the adjustment of the attack duration to make attack times more accurate to CTS.
+                            For vanilla, this value is false.
+                            """)
+                    .define("attack_duration_adjustment", true);
             attackGracePeriod = b
                     .comment("""
                             Toggles the "grace period" where if you attack before 100% when you shouldn't be able to, but are between the percentage value of attack_grace_period_time and 100%, the attack is delayed until one tick after 100%.
@@ -265,6 +272,10 @@ public class MeleeCombatConfigs {
 
     public static ForgeConfigSpec.BooleanValue getAttackDuringCooldownPrevented() {
         return attackDuringCooldownPrevented;
+    }
+
+    public static ForgeConfigSpec.BooleanValue getAttackDurationAdjustment() {
+        return attackDurationAdjustment;
     }
 
     public static ForgeConfigSpec.BooleanValue getAttackGracePeriod() {
