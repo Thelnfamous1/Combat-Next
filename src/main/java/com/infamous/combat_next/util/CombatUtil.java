@@ -253,12 +253,6 @@ public class CombatUtil {
                 double zAdjust = adjustSize(boundingBox.getZsize());
                 boundingBox = boundingBox.inflate(xAdjust, yAdjust, zAdjust);
             }
-        } else if (GeneralCombatConfigs.getHitboxAdjustmentType().get() == HitboxInflationType.CTS) {
-            double d = Math.max(boundingBox.getXsize(), boundingBox.getYsize());
-            if (d < GeneralCombatConfigs.getHitboxMinSizeForHitscan().get()) {
-                d = (GeneralCombatConfigs.getHitboxMinSizeForHitscan().get() - d) * 0.5;
-            }
-            boundingBox = boundingBox.inflate(d);
         }
         return boundingBox;
     }
@@ -353,7 +347,7 @@ public class CombatUtil {
         return getSuperchargedAttackStrengthScale(player, partialTick) >= MeleeCombatConfigs.getAttackStrengthScaleSuperchargeThreshold().get().floatValue();
     }
 
-    private static float getSuperchargedAttackStrengthScale(Player player, float partialTick) {
+    public static float getSuperchargedAttackStrengthScale(Player player, float partialTick) {
         return Mth.clamp(((float) ((LivingEntityAccessor) player).getAttackStrengthTicker() + partialTick) / player.getCurrentItemAttackStrengthDelay(), 0.0F, MeleeCombatConfigs.getAttackStrengthScaleSuperchargeThreshold().get().floatValue());
     }
 
@@ -449,5 +443,13 @@ public class CombatUtil {
 
     public static boolean isOnMaxInvulnerableTime(LivingEntity victim) {
         return victim.invulnerableTime == victim.invulnerableDuration;
+    }
+
+    public static float getFatigueForTime(int time) {
+        if (time < RangedCombatConfigs.getBowTicksBeforeOverdrawn().get()) {
+            return 0.5F;
+        } else {
+            return time >= RangedCombatConfigs.getBowTicksUntilMaxOverdraw().get() ? RangedCombatConfigs.getBowOverdrawnArrowInaccuracyMax().get().floatValue() : 0.5F + 10.0F * (float)(time - RangedCombatConfigs.getBowTicksBeforeOverdrawn().get()) / 140.0F;
+        }
     }
 }

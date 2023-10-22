@@ -3,8 +3,10 @@ package com.infamous.combat_next.config;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 public class RangedCombatConfigs {
-    private static ForgeConfigSpec.DoubleValue bowOverdrawnArrowInaccuracy;
+    private static ForgeConfigSpec.DoubleValue bowOverdrawnArrowInaccuracyDefault;
+    private static ForgeConfigSpec.DoubleValue bowOverdrawnArrowInaccuracyMax;
     private static ForgeConfigSpec.IntValue bowTicksBeforeOverdrawn;
+    private static ForgeConfigSpec.IntValue bowTicksUntilMaxOverdraw;
     private static ForgeConfigSpec.IntValue snowballMaxStackSize;
     private static ForgeConfigSpec.BooleanValue bowOverdrawing;
     private static ForgeConfigSpec.BooleanValue tridentLoyaltyReturnFromVoid;
@@ -20,16 +22,28 @@ public class RangedCombatConfigs {
                             For vanilla, this value is false.
                             """)
                     .define("bow_overdrawing", true);
-            bowOverdrawnArrowInaccuracy = b
+            bowOverdrawnArrowInaccuracyDefault = b
                     .comment("""
-                            Adjusts the inaccuracy factor for an arrow shot by an overdrawn bow.
+                            Adjusts the minimum inaccuracy factor for an arrow shot by an overdrawn bow.
                             Note: The "bow_overdrawing" config value must be set to true.
                             Note: In vanilla, an inaccuracy factor of 1.0 is applied to all arrows shot from bows.
                             """)
-                    .defineInRange("bow_overdrawn_arrow_inaccuracy", 0.25F, 0.0F, 100.0F);
+                    .defineInRange("bow_overdrawn_arrow_inaccuracy_default", 0.25F, 0.0F, 1.0F);
+            bowOverdrawnArrowInaccuracyMax = b
+                    .comment("""
+                            Adjusts the maximum inaccuracy multiplier for an arrow shot by an overdrawn bow.
+                            Note: The "bow_overdrawing" config value must be set to true.
+                            """)
+                    .defineInRange("bow_overdrawn_arrow_inaccuracy_max", 10.5F, 0.0F, 100.0F);
+            bowTicksUntilMaxOverdraw = b
+                    .comment("""
+                            Adjusts the amount of ticks (1/20 seconds) a bow can be charged before reaches maximum fatigue, preventing crits and providing the maximum inaccuracy.
+                            Note: The "bow_overdrawing" config value must be set to true.
+                            """)
+                    .defineInRange("bow_ticks_before_overdrawn", 200, 0, 1000);
             bowTicksBeforeOverdrawn = b
                     .comment("""
-                            Adjusts the amount of ticks (1/20 seconds) a bow can be charged before it is "overdrawn", preventing crits and causing inaccuracy.
+                            Adjusts the amount of ticks (1/20 seconds) a bow can be charged before it is fatigue, preventing crits and causing inaccuracy.
                             Note: The "bow_overdrawing" config value must be set to true.
                             """)
                     .defineInRange("bow_ticks_before_overdrawn", 60, 0, 200);
@@ -67,8 +81,16 @@ public class RangedCombatConfigs {
         });
     }
 
-    public static ForgeConfigSpec.DoubleValue getBowOverdrawnArrowInaccuracy() {
-        return bowOverdrawnArrowInaccuracy;
+    public static ForgeConfigSpec.DoubleValue getBowOverdrawnArrowInaccuracyDefault() {
+        return bowOverdrawnArrowInaccuracyDefault;
+    }
+
+    public static ForgeConfigSpec.DoubleValue getBowOverdrawnArrowInaccuracyMax() {
+        return bowOverdrawnArrowInaccuracyMax;
+    }
+
+    public static ForgeConfigSpec.IntValue getBowTicksUntilMaxOverdraw() {
+        return bowTicksUntilMaxOverdraw;
     }
 
     public static ForgeConfigSpec.IntValue getBowTicksBeforeOverdrawn() {
