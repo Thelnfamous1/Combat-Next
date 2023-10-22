@@ -29,9 +29,9 @@ public abstract class EntityMixin {
     @ModifyReturnValue(method = "getPickRadius", at = @At(value = "RETURN"))
     public float inflateBoxes(float original) {
         if (GeneralCombatConfigs.getHitboxAdjustmentType().get() == HitboxInflationType.CTS) {
-            float f = Math.max(getBbWidth(), getBbHeight());
-            if (f < GeneralCombatConfigs.getHitboxMinSizeForHitscan().get()) {
-                return (float) ((GeneralCombatConfigs.getHitboxMinSizeForHitscan().get() - f) * 0.5F);
+            float greatestDimension = Math.max(getBbWidth(), getBbHeight());
+            if (greatestDimension < GeneralCombatConfigs.getHitboxMinSizeForHitscan().get()) {
+                return (float) ((GeneralCombatConfigs.getHitboxMinSizeForHitscan().get() - greatestDimension) * 0.5F);
             }
         }
         return original;

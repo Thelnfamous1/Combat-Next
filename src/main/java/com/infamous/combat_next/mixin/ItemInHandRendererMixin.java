@@ -3,13 +3,14 @@ package com.infamous.combat_next.mixin;
 import com.infamous.combat_next.config.AnimCombatConfigs;
 import com.infamous.combat_next.config.MeleeCombatConfigs;
 import com.infamous.combat_next.util.CombatUtil;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.Slice;
 
 @Mixin(ItemInHandRenderer.class)
@@ -23,9 +24,12 @@ public class ItemInHandRendererMixin {
         }
         return true;
     }
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getAttackStrengthScale(F)F"))
-    private float changeStrengthScale(LocalPlayer player, float f) {
-        return CombatUtil.getSuperchargedAttackStrengthScale(player, f);
+    @WrapOperation(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getAttackStrengthScale(F)F"))
+    private float changeStrengthScale(LocalPlayer instance, float f, Operation<Float> original) {
+        if (AnimCombatConfigs.getArmHeightRaisesToCharged().get()) {
+            return CombatUtil.getSuperchargedAttackStrengthScale(instance, f);
+        } else
+            return original.call(instance, f);
     }
 
     //This works, trust us

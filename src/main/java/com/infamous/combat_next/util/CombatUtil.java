@@ -444,4 +444,12 @@ public class CombatUtil {
     public static boolean isOnMaxInvulnerableTime(LivingEntity victim) {
         return victim.invulnerableTime == victim.invulnerableDuration;
     }
+
+    public static float getFatigueForTime(int time) {
+        if (time < RangedCombatConfigs.getBowTicksBeforeOverdrawn().get()) {
+            return 0.5F;
+        } else {
+            return time >= RangedCombatConfigs.getBowTicksUntilMaxOverdraw().get() ? RangedCombatConfigs.getBowOverdrawnArrowInaccuracyMax().get().floatValue() : 0.5F + 10.0F * (float)(time - RangedCombatConfigs.getBowTicksBeforeOverdrawn().get()) / 140.0F;
+        }
+    }
 }
