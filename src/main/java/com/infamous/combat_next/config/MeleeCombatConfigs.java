@@ -54,7 +54,7 @@ public class MeleeCombatConfigs {
                     .define("attack_cooldown_impact_on_damage", false);
             attackCriticalWhenSprinting = b
                     .comment("""
-                            Toggles attacks becoming critical when sprinting.
+                            Toggles attacks being able to become critical when sprinting.
                             For vanilla, this value is false.
                             """)
                     .define("attack_critical_when_sprinting", true);
@@ -276,6 +276,18 @@ public class MeleeCombatConfigs {
     public static ForgeConfigSpec.BooleanValue getAttackDurationAdjustment() {
         return attackDurationAdjustment;
     }
+    public static ForgeConfigSpec.BooleanValue getAttackGracePeriod() {
+        return attackGracePeriod;
+    }
+
+    public static ForgeConfigSpec.DoubleValue getAttackGracePeriodTime() {
+        return attackGracePeriodTime;
+    }
+
+    public static ForgeConfigSpec.BooleanValue getAttackDurationAdjustment() {
+        return attackDurationAdjustment;
+    }
+
     public static ForgeConfigSpec.BooleanValue getAttackGracePeriod() {
         return attackGracePeriod;
     }

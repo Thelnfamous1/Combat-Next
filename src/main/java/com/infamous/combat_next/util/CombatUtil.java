@@ -299,16 +299,14 @@ public class CombatUtil {
     public static boolean isSprintCritical(Player player, Entity target) {
         boolean fullStrength = player.getAttackStrengthScale(0.5F) > 0.9F;
         fullStrength |= !MeleeCombatConfigs.getAttackCooldownImpactOnDamage().get();
-        boolean canSprintCrit = fullStrength
-                && player.fallDistance <= 0.0F // can't sprint and fall
-                && player.onGround() // can only sprint on ground
+        return fullStrength
+                && player.fallDistance > 0.0F
+                && !player.onGround()
                 && !player.onClimbable()
                 && !player.isInWater()
                 && !player.hasEffect(MobEffects.BLINDNESS)
                 && !player.isPassenger()
                 && target instanceof LivingEntity;
-        canSprintCrit = canSprintCrit && player.isSprinting();
-        return canSprintCrit;
     }
 
     public static void handleBonusAttackReach(Player player, boolean add) {
@@ -405,16 +403,16 @@ public class CombatUtil {
         return attackDamage;
     }
 
-    public static boolean isUsingOffhandShield(Player player){
-        return player.getUsedItemHand() == InteractionHand.OFF_HAND && isShield(player.getUseItem());
+    public static boolean isUsingShield(Player player){
+        return isShield(player.getUseItem());
     }
 
     public static boolean isShield(ItemStack stack) {
         return stack.canPerformAction(ToolActions.SHIELD_BLOCK);
     }
 
-    public static boolean hasOffhandShield(Player player){
-        return isShield(player.getItemInHand(InteractionHand.OFF_HAND));
+    public static boolean hasShield(Player player, InteractionHand hand){
+        return isShield(player.getItemInHand(hand));
     }
 
     public static boolean canShieldOnCrouch(Player player){

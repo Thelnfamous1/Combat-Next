@@ -36,38 +36,39 @@ public class ClientCombatUtil {
     public static boolean isCrouchShielding(Player player){
         return Minecraft.getInstance().options.keyShift.isDown()
                 && !Minecraft.getInstance().options.keyUse.isDown()
-                && CombatUtil.isUsingOffhandShield(player);
+                && CombatUtil.isUsingShield(player);
     }
 
     public static void handleShiftKeyDown() {
         if (Minecraft.getInstance().getOverlay() == null && Minecraft.getInstance().screen == null) {
             //noinspection ConstantConditions
+            InteractionHand shieldHand = CombatUtil.getShieldHoldingHand(Minecraft.getInstance().player);
             if(Minecraft.getInstance().options.keyShift.isDown()
-                    && CombatUtil.hasOffhandShield(Minecraft.getInstance().player)
+                    && CombatUtil.hasShield(Minecraft.getInstance().player, shieldHand)
                     && CombatUtil.canShieldOnCrouch(Minecraft.getInstance().player)
                     && !Minecraft.getInstance().player.isUsingItem()
                     && ShieldCombatConfigs.getShieldCrouch().get()){
-                startUsingOffhandShield();
+                startUsingShield(shieldHand);
             }
         }
     }
 
-    private static void startUsingOffhandShield() {
+    private static void startUsingShield(InteractionHand hand) {
         Minecraft minecraft = Minecraft.getInstance();
         MultiPlayerGameMode gameMode = minecraft.gameMode;
         LocalPlayer player = minecraft.player;
         //noinspection ConstantConditions
         if (!player.isHandsBusy()) {
-            ItemStack itemInHand = player.getItemInHand(InteractionHand.OFF_HAND);
+            ItemStack itemInHand = player.getItemInHand(hand);
             if (!itemInHand.isEmpty() && CombatUtil.isShield(itemInHand)) {
                 //noinspection ConstantConditions
-                InteractionResult useResult = gameMode.useItem(player, InteractionHand.OFF_HAND);
+                InteractionResult useResult = gameMode.useItem(player, hand);
                 if (useResult.consumesAction()) {
                     if (useResult.shouldSwing()) {
-                        player.swing(InteractionHand.OFF_HAND);
+                        player.swing(hand);
                     }
 
-                    minecraft.gameRenderer.itemInHandRenderer.itemUsed(InteractionHand.OFF_HAND);
+                    minecraft.gameRenderer.itemInHandRenderer.itemUsed(hand);
                 }
             }
         }
