@@ -85,7 +85,7 @@ public abstract class LivingEntityMixin extends Entity{
         if(BugFixConfigs.fixShieldAttackerKnockback.get()){
             ci.cancel();
             // Fix MC-147694 by switching attacker and defender
-            this.knockback(0.5D, this.getX() - defender.getX(), this.getZ() - defender.getZ());
+            this.knockback(0.5D, defender.getX() - this.getX(), defender.getZ() - this.getZ());
         }
     }
 
