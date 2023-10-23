@@ -1,6 +1,5 @@
 package com.infamous.combat_next.config;
 
-import com.infamous.combat_next.util.HitboxInflationType;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.util.List;
@@ -276,18 +275,6 @@ public class MeleeCombatConfigs {
     public static ForgeConfigSpec.BooleanValue getAttackDurationAdjustment() {
         return attackDurationAdjustment;
     }
-    public static ForgeConfigSpec.BooleanValue getAttackGracePeriod() {
-        return attackGracePeriod;
-    }
-
-    public static ForgeConfigSpec.DoubleValue getAttackGracePeriodTime() {
-        return attackGracePeriodTime;
-    }
-
-    public static ForgeConfigSpec.BooleanValue getAttackDurationAdjustment() {
-        return attackDurationAdjustment;
-    }
-
     public static ForgeConfigSpec.BooleanValue getAttackGracePeriod() {
         return attackGracePeriod;
     }
