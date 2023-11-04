@@ -151,7 +151,7 @@ dependencies {
 
     minecraftLibrary group: "com.github.LlamaLad7", name:"MixinExtras", version: "${mixin_extras_version}"
     annotationProcessor("com.github.LlamaLad7:MixinExtras:${mixin_extras_version}")
-    jarJar(group: "com.github.LlamaLad7", name:"MixinExtras", version: "[${mixin_extras_version},${mixin_extras_next_version})")
+    jarJar(group: "com.github.LlamaLad7", name:"MixinExtras", version: "[${mixin_extras_version},)")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
