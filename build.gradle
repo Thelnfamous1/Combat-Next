@@ -140,7 +140,7 @@ repositories {
             includeGroup "curse.maven"
         }
     }
-    maven { url 'https://jitpack.io' }
+    mavenCentral()
 }
 
 dependencies {
@@ -149,9 +149,10 @@ dependencies {
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    minecraftLibrary group: "com.github.LlamaLad7", name:"MixinExtras", version: "${mixin_extras_version}"
-    annotationProcessor("com.github.LlamaLad7:MixinExtras:${mixin_extras_version}")
-    jarJar(group: "com.github.LlamaLad7", name:"MixinExtras", version: "[${mixin_extras_version},${mixin_extras_next_version})")
+    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixin_extras_version}"))
+    implementation(jarJar("io.github.llamalad7:mixinextras-forge:${mixin_extras_version}")) {
+        jarJar.ranged(it, "[${mixin_extras_version},)")
+    }
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
